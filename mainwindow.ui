@@ -337,7 +337,10 @@
     <addaction name="menuLast_open"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_as"/>
+    <addaction name="separator"/>
     <addaction name="actionRefresh"/>
+    <addaction name="actionSearch_file"/>
+    <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuTools">
@@ -356,6 +359,8 @@
     <addaction name="separator"/>
     <addaction name="actionNext_schift_chords"/>
     <addaction name="actionPrevious_schift_chords"/>
+    <addaction name="separator"/>
+    <addaction name="actionProperties"/>
    </widget>
    <widget class="QMenu" name="menuInfo">
     <property name="title">
@@ -536,6 +541,22 @@
   <action name="actionSwap_colors">
    <property name="text">
     <string>Swap colors</string>
+   </property>
+  </action>
+  <action name="actionSearch_file">
+   <property name="text">
+    <string>Search file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
+   </property>
+  </action>
+  <action name="actionProperties">
+   <property name="text">
+    <string>Properties</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
    </property>
   </action>
  </widget>

@@ -30,7 +30,7 @@ protected:
 private slots:
     void textChange();
 
-    void encodingChange(int index);
+    void encodingChange(QString encode);
 
     void chordsChange(int chords);
 
@@ -93,7 +93,6 @@ private:
     void SetFullScreenText();
     void LoadHistoryActions();
     void AddAction(QString path);
-//    QString GetMimeType(const QString& fileName);
 
     QToolBar* m_view_tool_bar;
     QToolBar* m_scroll_tool_bar;
@@ -111,6 +110,7 @@ private:
     bool m_changed;
     bool m_fullscreen;
 
+    QSettings settings;
     MySimpleList<QActionPtr> m_files_history;
 };
 

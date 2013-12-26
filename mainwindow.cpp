@@ -7,7 +7,6 @@
 #include <QMessageBox>
 #include <QDebug>
 #include "chord.h"
-//#include <magic.h> //GetMimeType
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -15,23 +14,58 @@ MainWindow::MainWindow(QWidget *parent) :
     m_dir(""),
     m_doc(new QTextDocument),
     m_timer(new QTimer(this)),
-    m_columns_count(3),
-    m_scrolling_speed(8),
-    m_changed(false),
-    m_fullscreen(false)
+    m_changed(false)
 {
+    setWindowTitle("Guitar Text");
+
     ui->setupUi(this);
+
+    ui->textEdit->installEventFilter(this);
+
+    //------------Liczba kolumn------------
+    if(settings.contains("editor/colimn_count"))
+        m_columns_count = settings.value("editor/colimn_count", 3).toInt();
+    else
+    {
+        m_columns_count = 3;
+        settings.setValue("editor/colimn_count", m_columns_count);
+    }
+    //------------Tempo przewijania------------
+    if(settings.contains("editor/scroling_speed"))
+        m_scrolling_speed = settings.value("editor/scroling_speed", 8).toInt();
+    else
+    {
+        m_scrolling_speed = 8;
+        settings.setValue("editor/scroling_speed", m_scrolling_speed);
+    }
+    //------------Pełny ekran------------
+    if(settings.contains("app/fullscreen"))
+        m_fullscreen = settings.value("app/fullscreen", false).toBool();
+    else
+    {
+        m_fullscreen = 8;
+        settings.setValue("app/fullscreen", m_fullscreen);
+    }
 
     //------------Ustawienie identyfikatera html akordu------------
     m_doc->setDefaultStyleSheet(".akord{color: #ff0000}");
 
 
     //------------Ustawienie wielkości czcionki------------
-    QFont font = m_doc->defaultFont();
-    font.setPointSize(14);
-    m_doc->setDefaultFont(font);
-    ui->textEdit->setDocument(m_doc);
-
+    if(settings.contains("editor/font"))
+    {
+        QFont font = settings.value("editor/font", m_doc->defaultFont()).value<QFont>();
+        m_doc->setDefaultFont(font);
+        ui->textEdit->setDocument(m_doc);
+    }
+    else
+    {
+        QFont font = m_doc->defaultFont();
+        font.setPointSize(14);
+        m_doc->setDefaultFont(font);
+        ui->textEdit->setDocument(m_doc);
+        settings.setValue("editor/font", font);
+    }
 
     //------------Wypełnianie boxa z kodowaniami------------
     ui->comboBox->addItem("UTF-8");
@@ -39,25 +73,34 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->comboBox->addItem("Windows-1250");
     ui->comboBox->addItem("ISO 8859-1");
     ui->comboBox->addItem("ISO 8859-2");
-    setWindowTitle("Guitar Text");
 
+    if(settings.contains("editor/code"))
+    {
+        ui->comboBox->setCurrentText(settings.value("editor/code", "UTF-8").toString());
+    }
+    else
+    {
+        settings.setValue("editor/code", ui->comboBox->currentText());
+    }
 
     //------------Połączenia------------
     connect(ui->textEdit, SIGNAL(textChanged()), this, SLOT(textChange()));
-    connect(ui->comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(encodingChange(int)));
+    connect(ui->comboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(encodingChange(QString)));
     connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(chordsChange(int)));
     connect(m_timer, SIGNAL(timeout()), this, SLOT(moveScrollBar()));
     connect(ui->spinBox_2, SIGNAL(valueChanged(int)), this, SLOT(setScrollingSpeed(int)));
 
     //------------Nie zapętlanie------------
     ui->cB_loop->setChecked(false);
+    settings.setValue("editor/loop", false);
 
     //------------Liczba kolumn------------
     m_column_text.resize(m_columns_count);
 
     chordsChange(1);
 
-    ui->textEdit->installEventFilter(this);
+    settings.setValue("editor/chords", 1);
+    settings.setValue("editor/shift", 0);
 
     //------------Ustawienei Centalnego Widgetu------------
     m_central = new QWidget(this);
@@ -66,7 +109,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_layout->addWidget(ui->textEdit);
     m_central->setLayout(m_layout);
 
-
     //------------Ustawienie Tool Barów------------
     ui->mainToolBar->setWindowTitle("Tools Bar");
     AddViewToolBar();
@@ -74,16 +116,58 @@ MainWindow::MainWindow(QWidget *parent) :
     SetCentralText();
 
     //------------Ustawienie Histori Otwartych Plików------------
-    m_files_history.setMaxSize(10);
+    if(settings.contains("app/files_history_max_size"))
+    {
+        m_files_history.setMaxSize(settings.value("app/files_history_max_size", 10).toInt());
+    }
+    else
+    {
+        m_files_history.setMaxSize(10);
+        settings.setValue("app/files_history_max_size", 10);
+    }
     ui->menuLast_open->setEnabled(false);
     connect(ui->menuLast_open, SIGNAL(triggered(QAction*)), this, SLOT(historyFileOpen(QAction*)));
 
     //------------Drag and Drop------------
     setAcceptDrops(true); //pozwalamy na przechwytywanie elementów
+
+    //------------Kolor tekstu------------
+    if(settings.contains("editor/text_color"))
+    {
+        QPalette textPalette = ui->textEdit->palette();
+        textPalette.setColor(QPalette::Text, settings.value("editor/text_color", QColor(255, 255, 255)).value<QColor>());
+        ui->textEdit->setPalette(textPalette);
+    }
+    else
+    {
+        QPalette textPalette = ui->textEdit->palette();
+        textPalette.setColor(QPalette::Text, QColor(255, 255, 255));
+        ui->textEdit->setPalette(textPalette);
+        settings.setValue("editor/text_color", textPalette.color(QPalette::Text));
+    }
+
+    //------------Kolor tła------------
+    if(settings.contains("editor/background_color"))
+    {
+        QPalette textPalette = ui->textEdit->palette();
+        textPalette.setColor(QPalette::Base, settings.value("editor/background_color", QColor(0, 0, 0)).value<QColor>());
+        ui->textEdit->setPalette(textPalette);
+    }
+    else
+    {
+        QPalette textPalette = ui->textEdit->palette();
+        textPalette.setColor(QPalette::Base, QColor(0, 0, 0));
+        ui->textEdit->setPalette(textPalette);
+        settings.setValue("editor/background_color", QColor(0, 0, 0));
+    }
 }
 
 MainWindow::~MainWindow()
 {
+    settings.setValue("editor/loop", false);
+    settings.setValue("editor/chords", 1);
+    settings.setValue("editor/shift", 0);
+
     m_timer->stop();
     delete m_timer;
     delete m_layout;
@@ -168,9 +252,9 @@ void MainWindow::textChange()
     m_changed = true;
 }
 
-void MainWindow::encodingChange(int index)
+void MainWindow::encodingChange(QString encode)
 {
-    Q_UNUSED(index)
+    settings.setValue("editor/code", encode);
 
     m_doc->clear();
 
@@ -193,6 +277,8 @@ void MainWindow::chordsChange(int chords)
         ui->actionSave->setEnabled(false);
         ui->textEdit->setReadOnly(true);
     }
+    settings.setValue("editor/chords", chords);
+
     m_doc->clear();
     PartitionText();
     ShowText();
@@ -218,6 +304,8 @@ void MainWindow::moveScrollBar()
 void MainWindow::setScrollingSpeed(int speed)
 {
     m_scrolling_speed = speed;
+
+    settings.setValue("editor/scroling_speed", m_scrolling_speed);
 
     if(m_scrolling_speed == 0)
     {
@@ -280,6 +368,8 @@ void MainWindow::on_actionOpen_triggered()
         LoadHistoryActions();
 
         ui->sb_shift->setValue(0);
+
+        ui->statusBar->showMessage("Otworzono " + m_dir, 5000);
     }
 }
 
@@ -306,6 +396,8 @@ void MainWindow::on_actionFont_triggered()
 
     if(ok)
     {
+        settings.setValue("editor/font", font);
+
         m_doc->setDefaultFont(font);
 
         PartitionText();
@@ -321,6 +413,9 @@ void MainWindow::on_actionText_Color_triggered()
     QColor textColor = QColorDialog::getColor(old, this);
 
     textPalette.setColor(QPalette::Text, (textColor.isValid() ? textColor : old));
+
+    settings.setValue("editor/text_color", textPalette.color(QPalette::Text));
+
     ui->textEdit->setPalette(textPalette);
 }
 
@@ -332,6 +427,9 @@ void MainWindow::on_actionBackground_Color_triggered()
     QColor backgroundColor = QColorDialog::getColor(old, this);
 
     textPalette.setColor(QPalette::Base, (backgroundColor.isValid() ? backgroundColor : old));
+
+    settings.setValue("editor/background_color", textPalette.color(QPalette::Base));
+
     ui->textEdit->setPalette(textPalette);
 }
 
@@ -617,38 +715,7 @@ void MainWindow::AddAction(QString path)
         m_files_history.addAtBeginning(action_ptr);
     }
 }
-/*
-QString MainWindow::GetMimeType(const QString &fileName)
-{
-    QString result("application/octet-stream");
-    magic_t magicMimePredictor;
-    magicMimePredictor = magic_open(MAGIC_MIME_TYPE);
 
-    if(!magicMimePredictor)
-    {
-        qDebug() << "libmagic: Unable to initialize magic library";
-    }
-    else
-    {
-        if(magic_load(magicMimePredictor, nullptr)) //jeżeli wartość różna od 0 to błąd
-        {
-            qDebug() << "libmagic: Can't load magic database - " + QString(magic_error(magicMimePredictor));
-            magic_close(magicMimePredictor);
-        }
-        else
-        {
-            const char* file = fileName.toStdString().c_str();
-            const char* mime;
-            mime = magic_file(magicMimePredictor, file); //get mime-type
-            result = QString(mime);
-            magic_close(magicMimePredictor);
-        }
-    }
-
-    qDebug() << "libmagic: result mime type - " + result + "for file: " + fileName;
-    return result;
-}
-*/
 void MainWindow::on_actionRefresh_triggered()
 {
     if(ui->spinBox->value() == 0)
@@ -697,6 +764,8 @@ void MainWindow::on_spinBox_column_valueChanged(int arg1)
 {
     m_columns_count = arg1;
 
+    settings.setValue("editor/colimn_count", m_columns_count);
+
     m_column_text.resize(m_columns_count);
 
     PartitionText();
@@ -705,7 +774,7 @@ void MainWindow::on_spinBox_column_valueChanged(int arg1)
 
 void MainWindow::on_sb_shift_valueChanged(int arg1)
 {
-    Q_UNUSED(arg1)
+    settings.setValue("editor/shift", 0);
 
     PartitionText();
     ShowText();
@@ -751,6 +820,8 @@ void MainWindow::on_actionFull_Screen_triggered()
         ui->statusBar->hide();
         m_fullscreen = true;
     }
+
+    settings.setValue("app/fullscreen", m_fullscreen);
 }
 
 void MainWindow::on_actionSwap_colors_triggered()
