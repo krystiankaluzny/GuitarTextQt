@@ -131,8 +131,8 @@
    <widget class="QWidget" name="view_widget" native="true">
     <property name="geometry">
      <rect>
-      <x>4</x>
-      <y>4</y>
+      <x>30</x>
+      <y>0</y>
       <width>401</width>
       <height>32</height>
      </rect>
@@ -152,7 +152,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="spinBox">
+      <widget class="QSpinBox" name="spinBox_chords">
        <property name="maximum">
         <number>100</number>
        </property>
@@ -175,7 +175,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="sb_shift">
+      <widget class="QSpinBox" name="spinBox_shift">
        <property name="minimum">
         <number>0</number>
        </property>
@@ -195,14 +195,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="comboBox">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
+      <widget class="QComboBox" name="comboBox_encoder"/>
      </item>
      <item>
       <widget class="QLabel" name="label_5">
@@ -253,7 +246,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="spinBox_2">
+      <widget class="QSpinBox" name="spinBox_speed">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -269,7 +262,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="pushButton_start">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -282,7 +275,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="pushButton_stop">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -295,7 +288,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="cB_loop">
+      <widget class="QCheckBox" name="checkBox_loop">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -562,14 +555,13 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
-  <tabstop>spinBox</tabstop>
-  <tabstop>sb_shift</tabstop>
-  <tabstop>comboBox</tabstop>
+  <tabstop>spinBox_chords</tabstop>
+  <tabstop>spinBox_shift</tabstop>
   <tabstop>spinBox_column</tabstop>
-  <tabstop>spinBox_2</tabstop>
-  <tabstop>pushButton</tabstop>
-  <tabstop>pushButton_2</tabstop>
-  <tabstop>cB_loop</tabstop>
+  <tabstop>spinBox_speed</tabstop>
+  <tabstop>pushButton_start</tabstop>
+  <tabstop>pushButton_stop</tabstop>
+  <tabstop>checkBox_loop</tabstop>
   <tabstop>textEdit</tabstop>
  </tabstops>
  <resources>

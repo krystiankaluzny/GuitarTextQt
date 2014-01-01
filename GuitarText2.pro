@@ -14,13 +14,22 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    chord.cpp
+    chord.cpp \
+    treeitem.cpp \
+    properties/treeitemdelegate.cpp \
+    properties/propertiesdialog.cpp \
+    properties/basemodel.cpp
 
 HEADERS  += mainwindow.h \
     chord.h \
-    mysimplelist.h
+    mysimplelist.h \
+    treeitem.h \
+    properties/treeitemdelegate.h \
+    properties/propertiesdialog.h \
+    properties/basemodel.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    properties/propertiesdialog.ui
 
 RESOURCES += \
     icons.qrc

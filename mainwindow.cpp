@@ -7,7 +7,14 @@
 #include <QMessageBox>
 #include <QDebug>
 #include "chord.h"
+#include "properties/propertiesdialog.h"
 
+/*TODO
+ *zrobić opcję ze ścieżkami z tekstami
+ *stworzyć posortowany wektor plików
+ *monitorować dodawane pliki i dopisywać je do wektora
+ *przeszukiwać listę
+ */
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -22,29 +29,35 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->textEdit->installEventFilter(this);
 
+    //------------Połączenia------------
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(moveScrollBar()));
+
     //------------Liczba kolumn------------
-    if(settings.contains("editor/colimn_count"))
-        m_columns_count = settings.value("editor/colimn_count", 3).toInt();
+    if(m_settings.contains("editor/colimn_count"))
+    {
+        m_columns_count = m_settings.value("editor/colimn_count", 3).toInt();
+        m_column_text.resize(m_columns_count);
+    }
     else
     {
         m_columns_count = 3;
-        settings.setValue("editor/colimn_count", m_columns_count);
+        m_settings.setValue("editor/colimn_count", m_columns_count);
     }
     //------------Tempo przewijania------------
-    if(settings.contains("editor/scroling_speed"))
-        m_scrolling_speed = settings.value("editor/scroling_speed", 8).toInt();
+    if(m_settings.contains("editor/scrolling_speed"))
+        m_scrolling_speed = m_settings.value("editor/scrolling_speed", 8).toInt();
     else
     {
         m_scrolling_speed = 8;
-        settings.setValue("editor/scroling_speed", m_scrolling_speed);
+        m_settings.setValue("editor/scrolling_speed", m_scrolling_speed);
     }
     //------------Pełny ekran------------
-    if(settings.contains("app/fullscreen"))
-        m_fullscreen = settings.value("app/fullscreen", false).toBool();
+    if(m_settings.contains("app/fullscreen"))
+        m_fullscreen = m_settings.value("app/fullscreen", false).toBool();
     else
     {
         m_fullscreen = 8;
-        settings.setValue("app/fullscreen", m_fullscreen);
+        m_settings.setValue("app/fullscreen", m_fullscreen);
     }
 
     //------------Ustawienie identyfikatera html akordu------------
@@ -52,9 +65,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     //------------Ustawienie wielkości czcionki------------
-    if(settings.contains("editor/font"))
+    if(m_settings.contains("editor/font"))
     {
-        QFont font = settings.value("editor/font", m_doc->defaultFont()).value<QFont>();
+        QFont font = m_settings.value("editor/font", m_doc->defaultFont()).value<QFont>();
         m_doc->setDefaultFont(font);
         ui->textEdit->setDocument(m_doc);
     }
@@ -64,43 +77,37 @@ MainWindow::MainWindow(QWidget *parent) :
         font.setPointSize(14);
         m_doc->setDefaultFont(font);
         ui->textEdit->setDocument(m_doc);
-        settings.setValue("editor/font", font);
+        m_settings.setValue("editor/font", font);
     }
 
     //------------Wypełnianie boxa z kodowaniami------------
-    ui->comboBox->addItem("UTF-8");
-    ui->comboBox->addItem("UTF-16");
-    ui->comboBox->addItem("Windows-1250");
-    ui->comboBox->addItem("ISO 8859-1");
-    ui->comboBox->addItem("ISO 8859-2");
+    ui->comboBox_encoder->clear();
+    ui->comboBox_encoder->addItem("UTF-8");
+    ui->comboBox_encoder->addItem("UTF-16");
+    ui->comboBox_encoder->addItem("Windows-1250");
+    ui->comboBox_encoder->addItem("ISO 8859-1");
+    ui->comboBox_encoder->addItem("ISO 8859-2");
 
-    if(settings.contains("editor/code"))
+    if(m_settings.contains("editor/code"))
     {
-        ui->comboBox->setCurrentText(settings.value("editor/code", "UTF-8").toString());
+        ui->comboBox_encoder->setCurrentText(m_settings.value("editor/code", "UTF-8").toString());
     }
     else
     {
-        settings.setValue("editor/code", ui->comboBox->currentText());
+        m_settings.setValue("editor/code", ui->comboBox_encoder->currentText());
     }
 
-    //------------Połączenia------------
-    connect(ui->textEdit, SIGNAL(textChanged()), this, SLOT(textChange()));
-    connect(ui->comboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(encodingChange(QString)));
-    connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(chordsChange(int)));
-    connect(m_timer, SIGNAL(timeout()), this, SLOT(moveScrollBar()));
-    connect(ui->spinBox_2, SIGNAL(valueChanged(int)), this, SLOT(setScrollingSpeed(int)));
-
     //------------Nie zapętlanie------------
-    ui->cB_loop->setChecked(false);
-    settings.setValue("editor/loop", false);
+    ui->checkBox_loop->setChecked(false);
+    m_settings.setValue("editor/loop", false);
 
     //------------Liczba kolumn------------
     m_column_text.resize(m_columns_count);
 
-    chordsChange(1);
+    on_spinBox_chords_valueChanged(1);
 
-    settings.setValue("editor/chords", 1);
-    settings.setValue("editor/shift", 0);
+    m_settings.setValue("editor/chords", 1);
+    m_settings.setValue("editor/shift", 0);
 
     //------------Ustawienei Centalnego Widgetu------------
     m_central = new QWidget(this);
@@ -116,14 +123,14 @@ MainWindow::MainWindow(QWidget *parent) :
     SetCentralText();
 
     //------------Ustawienie Histori Otwartych Plików------------
-    if(settings.contains("app/files_history_max_size"))
+    if(m_settings.contains("app/files_history_max_size"))
     {
-        m_files_history.setMaxSize(settings.value("app/files_history_max_size", 10).toInt());
+        m_files_history.setMaxSize(m_settings.value("app/files_history_max_size", 10).toInt());
     }
     else
     {
         m_files_history.setMaxSize(10);
-        settings.setValue("app/files_history_max_size", 10);
+        m_settings.setValue("app/files_history_max_size", 10);
     }
     ui->menuLast_open->setEnabled(false);
     connect(ui->menuLast_open, SIGNAL(triggered(QAction*)), this, SLOT(historyFileOpen(QAction*)));
@@ -132,10 +139,10 @@ MainWindow::MainWindow(QWidget *parent) :
     setAcceptDrops(true); //pozwalamy na przechwytywanie elementów
 
     //------------Kolor tekstu------------
-    if(settings.contains("editor/text_color"))
+    if(m_settings.contains("editor/text_color"))
     {
         QPalette textPalette = ui->textEdit->palette();
-        textPalette.setColor(QPalette::Text, settings.value("editor/text_color", QColor(255, 255, 255)).value<QColor>());
+        textPalette.setColor(QPalette::Text, m_settings.value("editor/text_color", QColor(255, 255, 255)).value<QColor>());
         ui->textEdit->setPalette(textPalette);
     }
     else
@@ -143,14 +150,14 @@ MainWindow::MainWindow(QWidget *parent) :
         QPalette textPalette = ui->textEdit->palette();
         textPalette.setColor(QPalette::Text, QColor(255, 255, 255));
         ui->textEdit->setPalette(textPalette);
-        settings.setValue("editor/text_color", textPalette.color(QPalette::Text));
+        m_settings.setValue("editor/text_color", textPalette.color(QPalette::Text));
     }
 
     //------------Kolor tła------------
-    if(settings.contains("editor/background_color"))
+    if(m_settings.contains("editor/background_color"))
     {
         QPalette textPalette = ui->textEdit->palette();
-        textPalette.setColor(QPalette::Base, settings.value("editor/background_color", QColor(0, 0, 0)).value<QColor>());
+        textPalette.setColor(QPalette::Base, m_settings.value("editor/background_color", QColor(0, 0, 0)).value<QColor>());
         ui->textEdit->setPalette(textPalette);
     }
     else
@@ -158,15 +165,16 @@ MainWindow::MainWindow(QWidget *parent) :
         QPalette textPalette = ui->textEdit->palette();
         textPalette.setColor(QPalette::Base, QColor(0, 0, 0));
         ui->textEdit->setPalette(textPalette);
-        settings.setValue("editor/background_color", QColor(0, 0, 0));
+        m_settings.setValue("editor/background_color", QColor(0, 0, 0));
     }
 }
 
 MainWindow::~MainWindow()
 {
-    settings.setValue("editor/loop", false);
-    settings.setValue("editor/chords", 1);
-    settings.setValue("editor/shift", 0);
+    m_settings.setValue("editor/loop", false);
+    m_settings.setValue("editor/chords", 1);
+    m_settings.setValue("editor/shift", 0);
+    m_settings.setValue("app/fullscreen", false);
 
     m_timer->stop();
     delete m_timer;
@@ -186,13 +194,13 @@ bool MainWindow::eventFilter(QObject *o, QEvent *e)
         {
             QKeyEvent* key_event = static_cast<QKeyEvent*>(e);
 
-            if(key_event->key() == Qt::Key_Space && ui->spinBox->value() > 0)
+            if(key_event->key() == Qt::Key_Space && ui->spinBox_chords->value() > 0)
             {
                 if(m_timer->isActive())
                 {
                     m_timer->stop();
                 }
-                else if(ui->spinBox_2->value() > 0)
+                else if(ui->spinBox_speed->value() > 0)
                 {
                     m_timer->start();
                 }
@@ -243,45 +251,8 @@ void MainWindow::dropEvent(QDropEvent *event)
         ShowText();
         LoadHistoryActions();
 
-        ui->sb_shift->setValue(0);
+        ui->spinBox_shift->setValue(0);
     }
-}
-
-void MainWindow::textChange()
-{
-    m_changed = true;
-}
-
-void MainWindow::encodingChange(QString encode)
-{
-    settings.setValue("editor/code", encode);
-
-    m_doc->clear();
-
-    Load();
-    PartitionText();
-    ShowText();
-}
-
-void MainWindow::chordsChange(int chords)
-{
-    if(chords == 0)
-    {
-        ui->actionSave->setEnabled(true);
-        ui->textEdit->setReadOnly(false);
-
-        m_timer->stop();
-    }
-    else
-    {
-        ui->actionSave->setEnabled(false);
-        ui->textEdit->setReadOnly(true);
-    }
-    settings.setValue("editor/chords", chords);
-
-    m_doc->clear();
-    PartitionText();
-    ShowText();
 }
 
 void MainWindow::moveScrollBar()
@@ -290,7 +261,7 @@ void MainWindow::moveScrollBar()
 
     if(bar != NULL)
     {
-        if(bar->value() == bar->maximum() && ui->cB_loop->isChecked())
+        if(bar->value() == bar->maximum() && ui->checkBox_loop->isChecked())
         {
             bar->setValue(bar->minimum());
         }
@@ -298,23 +269,6 @@ void MainWindow::moveScrollBar()
         {
             bar->setValue(bar->value() + 1 + m_scrolling_speed/10);
         }
-    }
-}
-
-void MainWindow::setScrollingSpeed(int speed)
-{
-    m_scrolling_speed = speed;
-
-    settings.setValue("editor/scroling_speed", m_scrolling_speed);
-
-    if(m_scrolling_speed == 0)
-    {
-        m_timer->stop();
-    }
-    else if(m_timer->isActive())
-    {
-        //timer start z nową szybkością
-        on_pushButton_clicked();
     }
 }
 
@@ -346,7 +300,7 @@ void MainWindow::on_actionNew_triggered()
     m_dir.clear();
     m_changed = false;
     setWindowTitle("New file");
-    ui->spinBox->setValue(0); //wywołanie chordsChange(0);
+    ui->spinBox_chords->setValue(0); //wywołanie chordsChange(0);
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -367,7 +321,7 @@ void MainWindow::on_actionOpen_triggered()
         ShowText();
         LoadHistoryActions();
 
-        ui->sb_shift->setValue(0);
+        ui->spinBox_shift->setValue(0);
 
         ui->statusBar->showMessage("Otworzono " + m_dir, 5000);
     }
@@ -396,7 +350,7 @@ void MainWindow::on_actionFont_triggered()
 
     if(ok)
     {
-        settings.setValue("editor/font", font);
+        m_settings.setValue("editor/font", font);
 
         m_doc->setDefaultFont(font);
 
@@ -414,7 +368,7 @@ void MainWindow::on_actionText_Color_triggered()
 
     textPalette.setColor(QPalette::Text, (textColor.isValid() ? textColor : old));
 
-    settings.setValue("editor/text_color", textPalette.color(QPalette::Text));
+    m_settings.setValue("editor/text_color", textPalette.color(QPalette::Text));
 
     ui->textEdit->setPalette(textPalette);
 }
@@ -428,7 +382,7 @@ void MainWindow::on_actionBackground_Color_triggered()
 
     textPalette.setColor(QPalette::Base, (backgroundColor.isValid() ? backgroundColor : old));
 
-    settings.setValue("editor/background_color", textPalette.color(QPalette::Base));
+    m_settings.setValue("editor/background_color", textPalette.color(QPalette::Base));
 
     ui->textEdit->setPalette(textPalette);
 }
@@ -453,7 +407,7 @@ void MainWindow::on_actionSave_as_triggered()
 
 void MainWindow::Save()
 {
-    if(ui->spinBox->value() == 0)
+    if(ui->spinBox_chords->value() == 0)
     {
         if(!m_dir.isEmpty())
         {
@@ -498,7 +452,7 @@ void MainWindow::Load()
     if(file.open(QIODevice::ReadOnly))
     {
         QTextStream textStream(&file);
-        textStream.setCodec(ui->comboBox->currentText().toStdString().c_str());
+        textStream.setCodec(ui->comboBox_encoder->currentText().toStdString().c_str());
 
         while(!textStream.atEnd())
         {
@@ -527,7 +481,7 @@ void MainWindow::PartitionText()
     QStringList start, end, middle;
     bool snobrack = false; //linijka nie zaczyna się nawiasem
 
-    if(ui->spinBox->value() > 0)
+    if(ui->spinBox_chords->value() > 0)
     {
         for(int i = 0, j = 0; i < m_text_lines.size(); i++)
         {
@@ -561,16 +515,16 @@ void MainWindow::PartitionText()
                     {
                         middle = end[0].split("|");
 
-                        int num = ui->spinBox->value(); //powinno być wieksze od 0
+                        int num = ui->spinBox_chords->value(); //powinno być wieksze od 0
 
                         if(num <= middle.size() && num >= 1)
                         {
-                            QString tmp = ShiftChordString(middle[num - 1].split(" "), ui->sb_shift->value());
+                            QString tmp = ShiftChordString(middle[num - 1].split(" "), ui->spinBox_shift->value());
                             text.append(tmp + "]");
                         }
                         else
                         {
-                            QString tmp = ShiftChordString(middle[0].split(" "), ui->sb_shift->value());
+                            QString tmp = ShiftChordString(middle[0].split(" "), ui->spinBox_shift->value());
                             text.append(tmp + "]");
                         }
                     }
@@ -610,7 +564,7 @@ void MainWindow::ShowText()
 
     QString tmp;
 
-    if(ui->spinBox->value() > 0)
+    if(ui->spinBox_chords->value() > 0)
     {
         tmp = "<table><tr>";
         for(int i = 0; i < m_columns_count; i++)
@@ -718,7 +672,7 @@ void MainWindow::AddAction(QString path)
 
 void MainWindow::on_actionRefresh_triggered()
 {
-    if(ui->spinBox->value() == 0)
+    if(ui->spinBox_chords->value() == 0)
     {
         Save();
     }
@@ -732,27 +686,14 @@ void MainWindow::on_actionRefresh_triggered()
 
 void MainWindow::on_actionPrevious_Chords_triggered()
 {
-    if(ui->spinBox->value() > ui->spinBox->minimum())
-        ui->spinBox->stepDown();
+    if(ui->spinBox_chords->value() > ui->spinBox_chords->minimum())
+        ui->spinBox_chords->stepDown();
 }
 
 void MainWindow::on_actionNext_Chords_triggered()
 {
-    if(ui->spinBox->value() < ui->spinBox->maximum())
-        ui->spinBox->stepUp();
-}
-
-void MainWindow::on_pushButton_clicked()
-{
-    if(ui->spinBox_2->value() > 0)
-    {
-        m_timer->start(720 - 20 * m_scrolling_speed);
-    }
-}
-
-void MainWindow::on_pushButton_2_clicked()
-{
-    m_timer->stop();
+    if(ui->spinBox_chords->value() < ui->spinBox_chords->maximum())
+        ui->spinBox_chords->stepUp();
 }
 
 void MainWindow::on_actionAbout_Qt_triggered()
@@ -764,7 +705,7 @@ void MainWindow::on_spinBox_column_valueChanged(int arg1)
 {
     m_columns_count = arg1;
 
-    settings.setValue("editor/colimn_count", m_columns_count);
+    m_settings.setValue("editor/colimn_count", m_columns_count);
 
     m_column_text.resize(m_columns_count);
 
@@ -772,28 +713,20 @@ void MainWindow::on_spinBox_column_valueChanged(int arg1)
     ShowText();
 }
 
-void MainWindow::on_sb_shift_valueChanged(int arg1)
-{
-    settings.setValue("editor/shift", 0);
-
-    PartitionText();
-    ShowText();
-}
-
 void MainWindow::on_actionNext_schift_chords_triggered()
 {
-    if(ui->sb_shift->value() < ui->sb_shift->maximum())
-        ui->sb_shift->stepUp();
+    if(ui->spinBox_shift->value() < ui->spinBox_shift->maximum())
+        ui->spinBox_shift->stepUp();
     else
-        ui->sb_shift->setValue(0);
+        ui->spinBox_shift->setValue(0);
 }
 
 void MainWindow::on_actionPrevious_schift_chords_triggered()
 {
-    if(ui->sb_shift->value() > ui->sb_shift->minimum())
-        ui->sb_shift->stepDown();
+    if(ui->spinBox_shift->value() > ui->spinBox_shift->minimum())
+        ui->spinBox_shift->stepDown();
     else
-        ui->sb_shift->setValue(11);
+        ui->spinBox_shift->setValue(11);
 }
 
 void MainWindow::on_actionFull_Screen_triggered()
@@ -821,7 +754,7 @@ void MainWindow::on_actionFull_Screen_triggered()
         m_fullscreen = true;
     }
 
-    settings.setValue("app/fullscreen", m_fullscreen);
+    m_settings.setValue("app/fullscreen", m_fullscreen);
 }
 
 void MainWindow::on_actionSwap_colors_triggered()
@@ -834,4 +767,109 @@ void MainWindow::on_actionSwap_colors_triggered()
     textEditPalette.setColor(QPalette::Text, background);
 
     ui->textEdit->setPalette(textEditPalette);
+}
+
+void MainWindow::on_actionProperties_triggered()
+{
+    TreeItem *item = createDirTree("/home/krystek/test2", nullptr);
+    m_text_bases.insert("test", item);
+    TreeItem *item2 = createDirTree("/home/krystek/test2", nullptr);
+    m_text_bases.insert("test2", item2);
+
+    PropertiesDialog dialog(m_settings, &m_text_bases);
+    dialog.setModal(true);
+    dialog.exec();
+
+    if(dialog.result() == QDialog::Accepted)
+    {
+        ui->comboBox_encoder->setCurrentText(dialog.m_encode);
+        ui->spinBox_shift->setValue(dialog.m_shift);
+        ui->spinBox_chords->setValue(dialog.m_chords);
+        ui->spinBox_column->setValue(dialog.m_column);
+        this->m_fullscreen = dialog.m_fullscreen;
+        m_files_history.setMaxSize(dialog.m_max_last_open);
+        ui->spinBox_speed->setValue(dialog.m_speed);
+
+        QPalette textPalette = ui->textEdit->palette();
+
+        textPalette.setColor(QPalette::Text, dialog.m_text);
+        textPalette.setColor(QPalette::Base, dialog.m_background);
+
+        ui->textEdit->setPalette(textPalette);
+    }
+}
+
+void MainWindow::on_spinBox_chords_valueChanged(int arg1)
+{
+    if(arg1 == 0)
+    {
+        ui->actionSave->setEnabled(true);
+        ui->textEdit->setReadOnly(false);
+
+        m_timer->stop();
+    }
+    else
+    {
+        ui->actionSave->setEnabled(false);
+        ui->textEdit->setReadOnly(true);
+    }
+    m_settings.setValue("editor/chords", arg1);
+
+    m_doc->clear();
+    PartitionText();
+    ShowText();
+}
+
+void MainWindow::on_spinBox_shift_valueChanged(int arg1)
+{
+    m_settings.setValue("editor/shift", arg1);
+
+    PartitionText();
+    ShowText();
+}
+
+void MainWindow::on_spinBox_speed_valueChanged(int arg1)
+{
+    m_scrolling_speed = arg1;
+
+    m_settings.setValue("editor/scroling_speed", m_scrolling_speed);
+
+    if(m_scrolling_speed == 0)
+    {
+        m_timer->stop();
+    }
+    else if(m_timer->isActive())
+    {
+        //timer start z nową szybkością
+        on_pushButton_start_clicked();
+    }
+}
+
+void MainWindow::on_pushButton_start_clicked()
+{
+    if(ui->spinBox_speed->value() > 0)
+    {
+        m_timer->start(720 - 20 * m_scrolling_speed);
+    }
+}
+
+void MainWindow::on_pushButton_stop_clicked()
+{
+    m_timer->stop();
+}
+
+void MainWindow::on_textEdit_textChanged()
+{
+    m_changed = true;
+}
+
+void MainWindow::on_comboBox_encoder_currentIndexChanged(const QString &arg1)
+{
+    m_settings.setValue("editor/code", arg1);
+
+    m_doc->clear();
+
+    Load();
+    PartitionText();
+    ShowText();
 }

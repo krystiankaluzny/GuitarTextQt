@@ -5,6 +5,7 @@
 #include <QtGui>
 #include <QVBoxLayout>
 #include "mysimplelist.h"
+#include "treeitem.h"
 #include <boost/shared_ptr.hpp>
 
 typedef boost::shared_ptr<QAction> QActionPtr;
@@ -28,15 +29,8 @@ protected:
     virtual void dropEvent(QDropEvent* event);
 
 private slots:
-    void textChange();
-
-    void encodingChange(QString encode);
-
-    void chordsChange(int chords);
 
     void moveScrollBar();
-
-    void setScrollingSpeed(int speed);
 
     void historyFileOpen(QAction* action);
 
@@ -62,15 +56,9 @@ private slots:
 
     void on_actionPrevious_Chords_triggered();
 
-    void on_pushButton_clicked();
-
-    void on_pushButton_2_clicked();
-
     void on_actionAbout_Qt_triggered();
 
     void on_spinBox_column_valueChanged(int arg1);
-
-    void on_sb_shift_valueChanged(int arg1);
 
     void on_actionNext_schift_chords_triggered();
 
@@ -79,6 +67,22 @@ private slots:
     void on_actionFull_Screen_triggered();
 
     void on_actionSwap_colors_triggered();
+
+    void on_actionProperties_triggered();
+
+    void on_spinBox_chords_valueChanged(int arg1);
+
+    void on_spinBox_shift_valueChanged(int arg1);
+
+    void on_spinBox_speed_valueChanged(int arg1);
+
+    void on_pushButton_start_clicked();
+
+    void on_pushButton_stop_clicked();
+
+    void on_textEdit_textChanged();
+
+    void on_comboBox_encoder_currentIndexChanged(const QString &arg1);
 
 private:
     void Save();
@@ -110,8 +114,9 @@ private:
     bool m_changed;
     bool m_fullscreen;
 
-    QSettings settings;
+    QSettings m_settings;
     MySimpleList<QActionPtr> m_files_history;
+    QMap<QString, TreeItem*> m_text_bases;
 };
 
 #endif // MAINWINDOW_H
