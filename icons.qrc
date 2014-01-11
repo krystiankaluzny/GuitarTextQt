@@ -14,4 +14,8 @@
         <file>icon/open.png</file>
         <file>icon/icon.png</file>
     </qresource>
+    <qresource prefix="/">
+        <file>icon/text-plain.png</file>
+        <file>icon/folder.png</file>
+    </qresource>
 </RCC>

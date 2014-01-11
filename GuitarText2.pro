@@ -18,7 +18,10 @@ SOURCES += main.cpp\
     treeitem.cpp \
     properties/treeitemdelegate.cpp \
     properties/propertiesdialog.cpp \
-    properties/basemodel.cpp
+    properties/basemodel.cpp \
+    search/mydirmodel.cpp \
+    search/searchdialog.cpp \
+    search/keybasemodel.cpp
 
 HEADERS  += mainwindow.h \
     chord.h \
@@ -26,10 +29,14 @@ HEADERS  += mainwindow.h \
     treeitem.h \
     properties/treeitemdelegate.h \
     properties/propertiesdialog.h \
-    properties/basemodel.h
+    properties/basemodel.h \
+    search/mydirmodel.h \
+    search/searchdialog.h \
+    search/keybasemodel.h
 
 FORMS    += mainwindow.ui \
-    properties/propertiesdialog.ui
+    properties/propertiesdialog.ui \
+    search/searchdialog.ui
 
 RESOURCES += \
     icons.qrc

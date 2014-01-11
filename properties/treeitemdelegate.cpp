@@ -23,10 +23,14 @@ void TreeItemDelegate::setEditorData(QWidget *editor, const QModelIndex &index) 
     int y = dialog->y();
     dialog->setGeometry(x, y, 500, 300);
 
-    if(index.data().isValid())
-        dialog->setDirectory(index.data().toString());
-    else
-        dialog->setDirectory("/home");
+    if(index.isValid())
+    {
+        if(index.data().isValid())
+            dialog->setDirectory(index.data().toString());
+        else
+            dialog->setDirectory("/home");
+    }
+
 }
 
 void TreeItemDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const

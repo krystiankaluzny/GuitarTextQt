@@ -53,7 +53,6 @@ private slots:
 
     void on_buttonBox_accepted();
 
-
     void on_pushButton_add_base_clicked();
 
     void on_pushButton_delete_base_clicked();

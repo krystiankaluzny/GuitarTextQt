@@ -6,6 +6,7 @@
 #include <QVBoxLayout>
 #include "mysimplelist.h"
 #include "treeitem.h"
+#include "search/searchdialog.h"
 #include <boost/shared_ptr.hpp>
 
 typedef boost::shared_ptr<QAction> QActionPtr;
@@ -29,6 +30,8 @@ protected:
     virtual void dropEvent(QDropEvent* event);
 
 private slots:
+
+    void Open(QString path);
 
     void moveScrollBar();
 
@@ -84,6 +87,8 @@ private slots:
 
     void on_comboBox_encoder_currentIndexChanged(const QString &arg1);
 
+    void on_actionSearch_triggered();
+
 private:
     void Save();
     void Load();
@@ -117,6 +122,8 @@ private:
     QSettings m_settings;
     MySimpleList<QActionPtr> m_files_history;
     QMap<QString, TreeItem*> m_text_bases;
+
+    SearchDialog* m_search_dialog;
 };
 
 #endif // MAINWINDOW_H

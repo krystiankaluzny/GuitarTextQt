@@ -52,6 +52,11 @@ QVariant TreeItem::data(int column) const
     return itemData.value(column);
 }
 
+void TreeItem::setParent(TreeItem *parent)
+{
+    parentItem = parent;
+}
+
 int TreeItem::childNumber() const
 {
     if(parentItem)
@@ -59,7 +64,7 @@ int TreeItem::childNumber() const
     return 0;
 }
 
-TreeItem *TreeItem::parent()
+TreeItem *TreeItem::parent() const
 {
     return parentItem;
 }
@@ -93,6 +98,26 @@ bool TreeItem::removeChildren(int position, int count)
 bool TreeItem::removeChild(QList<TreeItem*>::iterator iter)
 {
     return removeChildren(childItems.indexOf(*iter), 1);
+}
+
+bool TreeItem::clearChildren(int position, int count)
+{
+    if(position < 0 || position + count > childItems.size())
+        return false;
+
+    for(int i = 0; i < count; i++)
+    {
+        childItems.takeAt(position); // usuń z listy
+    }
+    return true;
+}
+
+void TreeItem::clearChildren()
+{
+    QList<TreeItem*>::iterator iter;
+    for(iter = childItems.begin(); iter != childItems.end(); iter++)
+        (*iter)->setParent(nullptr);
+    childItems.clear(); //czyszczenie listy ale nie usuwanie obiektów
 }
 
 bool TreeItem::insertColumns(int position, int columns)

@@ -10,9 +10,6 @@ PropertiesDialog::PropertiesDialog(QSettings &settings, QMap<QString, TreeItem*>
 {
     ui->setupUi(this);
 
-//    TreeItem *item = createDirTree("/home/krystek/test1", nullptr);
-//    m_text_bases.insert("test", item);
-
     m_base_model = new BaseModel(m_text_bases);
 
     delegate = new TreeItemDelegate;

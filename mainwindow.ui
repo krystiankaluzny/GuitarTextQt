@@ -353,6 +353,7 @@
     <addaction name="actionNext_schift_chords"/>
     <addaction name="actionPrevious_schift_chords"/>
     <addaction name="separator"/>
+    <addaction name="actionSearch"/>
     <addaction name="actionProperties"/>
    </widget>
    <widget class="QMenu" name="menuInfo">
@@ -550,6 +551,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="actionSearch">
+   <property name="text">
+    <string>Search</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
    </property>
   </action>
  </widget>

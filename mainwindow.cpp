@@ -11,7 +11,7 @@
 
 /*TODO
  *zrobić opcję ze ścieżkami z tekstami
- *stworzyć posortowany wektor plików
+ *stworzyć posortowany wektor plikóws
  *monitorować dodawane pliki i dopisywać je do wektora
  *przeszukiwać listę
  */
@@ -167,6 +167,22 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->textEdit->setPalette(textPalette);
         m_settings.setValue("editor/background_color", QColor(0, 0, 0));
     }
+
+    //------------Bazy tekstów------------
+    int size = m_settings.beginReadArray("bases");
+    for(int i = 0; i < size; i++)
+    {
+        m_settings.setArrayIndex(i);
+        QString key = m_settings.value("key").toString();
+        TreeItem* item = createDirTree(m_settings.value("path").toString(), nullptr);
+        m_text_bases.insert(key, item);
+    }
+    m_settings.endArray();
+
+
+    //------------Okno wyszukiwania------------
+    m_search_dialog = new SearchDialog(&m_text_bases, this);
+    connect(m_search_dialog, SIGNAL(doubleClicked(QString)), this, SLOT(Open(QString)));
 }
 
 MainWindow::~MainWindow()
@@ -175,6 +191,18 @@ MainWindow::~MainWindow()
     m_settings.setValue("editor/chords", 1);
     m_settings.setValue("editor/shift", 0);
     m_settings.setValue("app/fullscreen", false);
+
+    m_settings.remove("bases");
+    QMap<QString, TreeItem*>::iterator iter;
+    int i = 0;
+    m_settings.beginWriteArray("bases");
+    for(iter = m_text_bases.begin(); iter != m_text_bases.end(); iter++, i++)
+    {
+        m_settings.setArrayIndex(i);
+        m_settings.setValue("key", iter.key());
+        m_settings.setValue("path", iter.value()->data(0).toString());
+    }
+    m_settings.endArray();
 
     m_timer->stop();
     delete m_timer;
@@ -222,16 +250,28 @@ bool MainWindow::eventFilter(QObject *o, QEvent *e)
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 {
-    QUrl path = event->mimeData()->urls().at(0);
+    const QMimeData* mime = event->mimeData();
+
+
+    if(mime->hasFormat("application/treeitem.ptr"))
+    {
+        event->acceptProposedAction();
+
+
+    }
+
+    QList<QUrl> url_list = event->mimeData()->urls();
+    if(url_list.isEmpty())
+        return;
+
+    QUrl path = url_list.at(0);
 
     if(path.isLocalFile()) //czy to jest ścieżka lokalna (nie sprawdza czy to jest plik)
     {
         QFileInfo file(path.toString(QUrl::RemoveScheme));
 
-        QString name = file.absoluteFilePath();
         if(file.isFile() && file.suffix() == "txt")
         {
-            qDebug() << name;
             event->acceptProposedAction();
         }
     }
@@ -239,20 +279,42 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 
 void MainWindow::dropEvent(QDropEvent *event)
 {
-    QFileInfo file(event->mimeData()->urls().at(0).toString(QUrl::RemoveScheme));
+    QFileInfo file;
+    if(event->mimeData()->hasFormat("application/treeitem.ptr"))
+    {
+        TreeItem* item = reinterpret_cast<TreeItem*>(event->mimeData()->data("application/treeitem.ptr").toULongLong());
+        if(item)
+        {
+            if(!item->isDir())
+                file.setFile(item->data(0).toString());
+        }
+    }
+    else
+    {
+        file.setFile(event->mimeData()->urls().at(0).toString(QUrl::RemoveScheme));
+    }
 
     if(m_dir != file.absoluteFilePath())
     {
-        m_dir = file.absoluteFilePath();
-
-        AddAction(m_dir);
-        Load();
-        PartitionText();
-        ShowText();
-        LoadHistoryActions();
+        Open(file.absoluteFilePath());
 
         ui->spinBox_shift->setValue(0);
     }
+}
+
+void MainWindow::Open(QString path)//scieżka musi istnieć
+{
+    if(path.isEmpty())
+        return;
+
+    m_dir = path;
+
+    AddAction(m_dir);
+
+    Load();
+    PartitionText();
+    ShowText();
+    LoadHistoryActions();
 }
 
 void MainWindow::moveScrollBar()
@@ -312,14 +374,8 @@ void MainWindow::on_actionOpen_triggered()
     if(!newdir.isEmpty() && newdir != m_dir)
     {
         m_doc->clear();
-        m_dir = newdir;
 
-        AddAction(m_dir);
-
-        Load();
-        PartitionText();
-        ShowText();
-        LoadHistoryActions();
+        Open(newdir);
 
         ui->spinBox_shift->setValue(0);
 
@@ -389,8 +445,6 @@ void MainWindow::on_actionBackground_Color_triggered()
 
 void MainWindow::on_actionExit_triggered()
 {
-    //Exit
-    //TODO zapytanie czy zapisać plik jeśli zmodyfikowany
     close();
 }
 
@@ -771,10 +825,10 @@ void MainWindow::on_actionSwap_colors_triggered()
 
 void MainWindow::on_actionProperties_triggered()
 {
-    TreeItem *item = createDirTree("/home/krystek/test2", nullptr);
-    m_text_bases.insert("test", item);
-    TreeItem *item2 = createDirTree("/home/krystek/test2", nullptr);
-    m_text_bases.insert("test2", item2);
+//    TreeItem *item = createDirTree("/home/krystek/test2", nullptr);
+//    m_text_bases.insert("test", item);
+//    TreeItem *item2 = createDirTree("/home/krystek/test2", nullptr);
+//    m_text_bases.insert("test2", item2);
 
     PropertiesDialog dialog(m_settings, &m_text_bases);
     dialog.setModal(true);
@@ -872,4 +926,15 @@ void MainWindow::on_comboBox_encoder_currentIndexChanged(const QString &arg1)
     Load();
     PartitionText();
     ShowText();
+}
+
+void MainWindow::on_actionSearch_triggered()
+{
+    if(m_search_dialog->isHidden())
+    {
+        m_search_dialog->show();
+//        m_search_dialog-
+    }
+    else
+        m_search_dialog->hide();
 }
