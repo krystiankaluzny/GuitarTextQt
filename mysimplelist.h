@@ -1,6 +1,6 @@
 #ifndef MYSIMPLELIST_H
 #define MYSIMPLELIST_H
-#include <climits> // to use max long long macro LLONG_MAX
+#include <climits> // to use max unsigned macro LLONG_MAX
 #include <initializer_list>
 #include <vector>
 #include <cassert>
@@ -71,25 +71,25 @@ public:
 public:
     MySimpleList();
     MySimpleList(std::initializer_list<T> list); //kostruktory z listami inicjalizującymi
-    MySimpleList(long long max, std::initializer_list<T> list);
+    MySimpleList(unsigned max, std::initializer_list<T> list);
     MySimpleList(MySimpleList& simple_list); //konstruktor kopiujący
     MySimpleList(MySimpleList&& simple_list); //konstruktor przenoszący
     ~MySimpleList();
 
-    void setMaxSize(unsigned long long max);
-    unsigned long long getMaxSize() const;
-    unsigned long long getSize() const;
+    void setMaxSize(unsigned max);
+    unsigned getMaxSize() const;
+    unsigned getSize() const;
     void addAtEnd(const T& item);
-    void addAtBeginning(const T& item);
-    const T& at(long long index) const;
-    T& operator[] (long long index);
-    T value(long long index) const;
-    bool swap(long long index1, long long index2);
+    void addAtFront(const T& item);
+    const T& at(unsigned index) const;
+    T& operator[] (unsigned index);
+    T value(unsigned index) const;
+    bool swap(unsigned index1, unsigned index2);
     bool moveOnTop(T& o);
     bool moveOnTop(iterator& iter);
     bool moveOnBottom(T& o);
     bool moveOnBottom(iterator& iter);
-    bool remove(long long index);
+    bool remove(unsigned index);
     void clear();
 
     iterator first() { return m_first != nullptr ? iterator(m_first) : iterator(m_end); }
@@ -103,8 +103,8 @@ public:
     }
 
 private:
-    unsigned long long m_max_size;
-    unsigned long long m_size;
+    unsigned m_max_size;
+    unsigned m_size;
 
     Obj* m_first;
     Obj* m_last;
@@ -140,7 +140,7 @@ template <typename T> MySimpleList<T>::MySimpleList(std::initializer_list<T> lis
     m_last->next = m_end;
 }
 
-template <typename T> MySimpleList<T>::MySimpleList(long long int max, std::initializer_list<T> list)
+template <typename T> MySimpleList<T>::MySimpleList(unsigned max, std::initializer_list<T> list)
     : m_max_size(max),
       m_size(0),
       m_first(nullptr),
@@ -197,18 +197,18 @@ template <typename T> MySimpleList<T>::~MySimpleList()
     delete m_start;
 }
 
-template <typename T> void MySimpleList<T>::setMaxSize(unsigned long long max)
+template <typename T> void MySimpleList<T>::setMaxSize(unsigned max)
 {
     if(max > 0)
         m_max_size = max;
 }
 
-template <typename T> unsigned long long MySimpleList<T>::getMaxSize() const
+template <typename T> unsigned MySimpleList<T>::getMaxSize() const
 {
     return m_max_size;
 }
 
-template <typename T> unsigned long long MySimpleList<T>::getSize() const
+template <typename T> unsigned MySimpleList<T>::getSize() const
 {
     return m_size;
 }
@@ -270,7 +270,7 @@ template <typename T> void MySimpleList<T>::addAtEnd(const T &item)
     }
 }
 
-template <typename T> void MySimpleList<T>::addAtBeginning(const T &item)
+template <typename T> void MySimpleList<T>::addAtFront(const T &item)
 {
     if(m_start == nullptr) m_start = new Obj;
     if(m_end == nullptr) m_end = new Obj;
@@ -328,7 +328,7 @@ template <typename T> void MySimpleList<T>::addAtBeginning(const T &item)
     }
 }
 
-template <typename T> const T &MySimpleList<T>::at(long long index) const
+template <typename T> const T &MySimpleList<T>::at(unsigned index) const
 {
     assert(index >= 0 && index < m_size);
 
@@ -356,7 +356,7 @@ template <typename T> const T &MySimpleList<T>::at(long long index) const
     }
 }
 
-template <typename T> T &MySimpleList<T>::operator[](long long index)
+template <typename T> T &MySimpleList<T>::operator[](unsigned index)
 {
     assert(index >= 0 && index < m_size);
 
@@ -384,7 +384,7 @@ template <typename T> T &MySimpleList<T>::operator[](long long index)
     }
 }
 
-template <typename T> T MySimpleList<T>::value(long long index) const
+template <typename T> T MySimpleList<T>::value(unsigned index) const
 {
     assert(index >= 0 && index < m_size);
 
@@ -412,12 +412,12 @@ template <typename T> T MySimpleList<T>::value(long long index) const
     }
 }
 
-template <typename T> bool MySimpleList<T>::swap(long long index1, long long index2)
+template <typename T> bool MySimpleList<T>::swap(unsigned index1, unsigned index2)
 {
     if(index1 == index2) return false;
 
-    long long max = Max(index1, index2);
-    long long min = Min(index1, index2);
+    unsigned max = Max(index1, index2);
+    unsigned min = Min(index1, index2);
 
     if(max >= m_size || min < 0) return false;
 
@@ -547,9 +547,9 @@ template <typename T> bool MySimpleList<T>::moveOnBottom(MySimpleList::iterator 
     return true;
 }
 
-template <typename T> bool MySimpleList<T>::remove(long long index)
+template <typename T> bool MySimpleList<T>::remove(unsigned index)
 {
-    if(index < 0 || index >= m_size) return false;
+    if(index >= m_size) return false;
 
     Obj* tmp = m_first;
 
@@ -560,13 +560,14 @@ template <typename T> bool MySimpleList<T>::remove(long long index)
 
     if(tmp == m_first)
     {
-        m_first = m_first->next;
-
-        if(m_first != nullptr)
+	if(m_size == 1)
+            m_first = m_last = nullptr;
+	else
+	{
+	    m_first = m_first->next;
             m_first->previous = m_start;
-        else                    //jeżeli lista miała tylko jeden element
-            m_last = nullptr;
-
+	}
+	
         delete tmp;
         m_size--;
     }

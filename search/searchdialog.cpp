@@ -63,18 +63,6 @@ void SearchDialog::on_comboBox_currentIndexChanged(const QString &arg1)
     m_dir_model->appendItem(m_bases->value(arg1));
 }
 
-void SearchDialog::on_treeView_base_doubleClicked(const QModelIndex &index)
-{
-    QString path;
-    TreeItem* item = reinterpret_cast<TreeItem*>(index.internalPointer());
-    if(item)
-        if(!item->isDir())
-        {
-            path = item->data(0).toString();
-            emit doubleClicked(path);
-        }
-}
-
 void SearchDialog::FindFiles(TreeItem *item, const QString &t)
 {
     if(item->isDir())
@@ -114,8 +102,20 @@ void SearchDialog::on_lineEdit_textChanged(const QString &arg1)
     }
 }
 
-void SearchDialog::on_listWidget_doubleClicked(const QModelIndex &index)
+void SearchDialog::on_listWidget_activated(const QModelIndex &index)
 {
     QString path = index.data(5).toString();
     emit doubleClicked(path);
+}
+
+void SearchDialog::on_treeView_base_activated(const QModelIndex &index)
+{
+    QString path;
+    TreeItem* item = reinterpret_cast<TreeItem*>(index.internalPointer());
+    if(item)
+        if(!item->isDir())
+        {
+            path = item->data(0).toString();
+            emit doubleClicked(path);
+        }
 }

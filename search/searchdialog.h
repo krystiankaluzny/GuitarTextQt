@@ -25,11 +25,11 @@ private slots:
 
     void on_comboBox_currentIndexChanged(const QString &arg1);
 
-    void on_treeView_base_doubleClicked(const QModelIndex &index);
-
     void on_lineEdit_textChanged(const QString &arg1);
 
-    void on_listWidget_doubleClicked(const QModelIndex &index);
+    void on_listWidget_activated(const QModelIndex &index);
+
+    void on_treeView_base_activated(const QModelIndex &index);
 
 private:
     void FindFiles(TreeItem* item, const QString& t);

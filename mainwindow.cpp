@@ -256,8 +256,6 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event)
     if(mime->hasFormat("application/treeitem.ptr"))
     {
         event->acceptProposedAction();
-
-
     }
 
     QList<QUrl> url_list = event->mimeData()->urls();
@@ -315,6 +313,9 @@ void MainWindow::Open(QString path)//scieżka musi istnieć
     PartitionText();
     ShowText();
     LoadHistoryActions();
+
+    ui->spinBox_shift->setValue(0);
+    ui->statusBar->showMessage("Otworzono " + m_dir, 5000);
 }
 
 void MainWindow::moveScrollBar()
@@ -372,15 +373,7 @@ void MainWindow::on_actionOpen_triggered()
     newdir = QFileDialog::getOpenFileName(this, tr("Otwórz"), (m_dir.isEmpty() ? "/home/krystek/Pulpit/Dokumenty/gitara/TEKSTY/" : m_dir), tr("Text Files (*.txt);;All Files (*)"));
 
     if(!newdir.isEmpty() && newdir != m_dir)
-    {
-        m_doc->clear();
-
         Open(newdir);
-
-        ui->spinBox_shift->setValue(0);
-
-        ui->statusBar->showMessage("Otworzono " + m_dir, 5000);
-    }
 }
 
 void MainWindow::on_actionSave_triggered()
@@ -715,12 +708,12 @@ void MainWindow::AddAction(QString path)
         (*iter_last).reset();
 
         QActionPtr action_ptr(act);
-        m_files_history.addAtBeginning(action_ptr);
+        m_files_history.addAtFront(action_ptr);
     }
     else
     {
         QActionPtr action_ptr(act);
-        m_files_history.addAtBeginning(action_ptr);
+        m_files_history.addAtFront(action_ptr);
     }
 }
 
@@ -931,10 +924,7 @@ void MainWindow::on_comboBox_encoder_currentIndexChanged(const QString &arg1)
 void MainWindow::on_actionSearch_triggered()
 {
     if(m_search_dialog->isHidden())
-    {
         m_search_dialog->show();
-//        m_search_dialog-
-    }
     else
         m_search_dialog->hide();
 }
