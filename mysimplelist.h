@@ -4,6 +4,7 @@
 #include <initializer_list>
 #include <vector>
 #include <cassert>
+#include <iostream>
 
 #define Max(a, b) (a > b ? a : b)
 #define Min(a, b) (a > b ? b : a)
@@ -24,8 +25,8 @@ public:
         inline iterator() : actual(nullptr) {}
         inline iterator(Obj* ob) : actual(ob) {}
         inline iterator(const iterator& iter) : actual(iter.actual) {}
-        inline void operator =(Obj* item) { actual = item;}
-        inline void operator =(const iterator& iter) { actual = iter.actual; }
+        inline iterator& operator =(Obj* item) { actual = item; return *this; }
+        inline iterator& operator =(const iterator& iter) { actual = iter.actual; return *this;}
         inline bool operator =(T data) { return actual->data = data; }
         inline bool operator ==(const iterator& iter) const { return actual == iter.actual; }
         inline bool operator !=(const iterator& iter) const { return actual != iter.actual; }
@@ -90,6 +91,7 @@ public:
     bool moveOnBottom(T& o);
     bool moveOnBottom(iterator& iter);
     bool remove(unsigned index);
+    bool remove(iterator& iter);
     void clear();
 
     iterator first() { return m_first != nullptr ? iterator(m_first) : iterator(m_end); }
@@ -98,8 +100,8 @@ public:
     iterator end() { return iterator(m_end); }
     iterator find(T& o) {
         iterator iter = first();
-        for(;iter != end(); iter++) if(iter.actual->data == o) break;
-        return iter;
+        for(;iter != end(); iter++) if(iter.actual->data == o) return iter;
+        return start();
     }
 
 private:
@@ -560,13 +562,17 @@ template <typename T> bool MySimpleList<T>::remove(unsigned index)
 
     if(tmp == m_first)
     {
-	if(m_size == 1)
+        if(m_size == 1)
+        {
             m_first = m_last = nullptr;
-	else
-	{
-	    m_first = m_first->next;
+            m_start->next = m_end;
+            m_end->previous = m_start;
+        }
+        else
+        {
+            m_first = m_first->next;
             m_first->previous = m_start;
-	}
+        }
 	
         delete tmp;
         m_size--;
@@ -591,9 +597,362 @@ template <typename T> bool MySimpleList<T>::remove(unsigned index)
     return true;
 }
 
+template <typename T> bool MySimpleList<T>::remove(MySimpleList::iterator &iter)
+{
+    if(iter == start() || iter == end()) return false;
+
+    Obj* tmp = iter.actual;
+    iter.actual = tmp->previous;
+
+    if(tmp == nullptr || tmp == m_start || tmp == m_end) return false;
+
+    if(tmp == m_first)
+    {
+        if(m_size == 1)
+            m_first = m_last = nullptr;
+        else
+        {
+            m_first = m_first->next;
+            m_first->previous = m_start;
+            m_start->next = m_first;
+        }
+
+        delete tmp;
+        m_size--;
+    }
+    else if(tmp == m_last)
+    {
+        m_last = m_last->previous;
+        m_last->next = m_end;
+        m_end->previous = m_last;
+
+        delete tmp;
+        m_size--;
+    }
+    else
+    {
+        tmp->previous->next = tmp->next;
+        tmp->next->previous = tmp->previous;
+
+        delete tmp;
+        m_size--;
+    }
+
+    return true;
+}
+
 template <typename T> void MySimpleList<T>::clear()
 {
     while(remove(0));
 }
 
 #endif // MYSIMPLELIST_H
+
+#ifndef LISTSORTBYWEIGHT_H
+#define LISTSORTBYWEIGHT_H
+
+template <typename T> class ListSortByWeight
+{
+private:
+    struct ObjW
+    {
+        T data;
+        ObjW* previous = nullptr;
+        ObjW* next = nullptr;
+        int weight = 0;
+    };
+
+public:
+    class iterator
+    {
+    public:
+        inline iterator() : actual(nullptr) {}
+        inline iterator(ObjW* ob) : actual(ob) {}
+        inline iterator(const iterator& iter) : actual(iter.actual) {}
+        inline int weight() { return actual->weight; }
+        inline void operator =(ObjW* item) { actual = item;}
+        inline void operator =(const iterator& iter) { actual = iter.actual; }
+        inline bool operator =(T data) { return actual->data = data; }
+        inline bool operator ==(const iterator& iter) const { return actual == iter.actual; }
+        inline bool operator !=(const iterator& iter) const { return actual != iter.actual; }
+        inline T& operator *() const { return actual->data; }
+        inline T* operator ->() const { return &actual->data; }
+        inline iterator& operator ++() { //pre inkrementacja
+            if(actual != nullptr)
+                actual = actual->next;
+            return *this;
+        }
+        inline iterator operator ++(int) { //post inkrementacja
+            if(actual != nullptr)
+            {
+                ObjW* t = actual;
+                actual = actual->next;
+                return t;
+            }
+            return *this;
+        }
+        inline iterator& operator --() { //pre dekrementacja
+            if(actual != nullptr)
+                actual = actual->previous;
+            return *this;
+        }
+        inline iterator operator --(int) { //post dekrementacja
+            if(actual != nullptr)
+            {
+                ObjW* t = actual;
+                actual = actual->previous;
+                return t;
+            }
+            return *this;
+        }
+
+    private:
+        ObjW* actual;
+
+        friend class ListSortByWeight;
+    };
+
+    friend class iteretor;
+
+public:
+    ListSortByWeight();
+    ~ListSortByWeight();
+
+    void add(const T& item, int weight);
+    bool incrementWeight(const T& item);
+    void clear();
+    bool remove(iterator& iter);
+
+    iterator first() { return m_first != nullptr ? iterator(m_first) : iterator(m_end); }
+    iterator last() { return m_last != nullptr ? iterator(m_last) : iterator(m_start); }
+    iterator start() { return iterator(m_start); }
+    iterator end() { return iterator(m_end); }
+    iterator find(T& o) {
+        iterator iter = first();
+        for(;iter != end(); iter++) if(iter.actual->data == o) return iter;
+        return start();
+    }
+
+private:
+    void sortObjW(ObjW* o);
+    void swap(ObjW* o1, ObjW* o2);
+    bool removeFirst();
+
+    ObjW* m_first;
+    ObjW* m_last;
+    ObjW* m_start; //element przed pierwszym, nie zawiera żadnych danych
+    ObjW* m_end; //element za ostatnim, nie zawiera żadnych danych
+};
+
+template <typename T> ListSortByWeight<T>::ListSortByWeight()
+    : m_first(nullptr),
+      m_last(nullptr),
+      m_start(new ObjW),
+      m_end(new ObjW)
+{
+    m_start->next = m_end;
+    m_end->previous = m_start;
+}
+template <typename T> ListSortByWeight<T>::~ListSortByWeight()
+{
+    this->clear();
+
+    delete m_start;
+    delete m_end;
+}
+
+template <typename T> void ListSortByWeight<T>::add(const T &item, int weight)
+{
+    if(!incrementWeight(item)) // jeżeli nie znaleziono takiego obiektu to dodajemy go
+    {
+        if(m_start == nullptr) m_start = new ObjW;
+        if(m_end == nullptr) m_end = new ObjW;
+
+        ObjW* tmp = new ObjW;
+        tmp->data = item;
+        tmp->weight = weight;
+
+        //dodaj na koniec
+        if(m_first == nullptr)
+        {
+            tmp->next = m_end;
+            tmp->previous = m_start;
+
+            m_start->next = tmp;
+            m_end->previous = tmp;
+
+            m_first = tmp;
+            m_last = tmp;
+        }
+        else
+        {
+            m_last->next = tmp;
+            tmp->previous = m_last;
+            tmp->next = m_end;
+
+            m_end->previous = tmp;
+
+            m_last = tmp;
+        }
+
+        sortObjW(tmp);
+    }
+}
+
+template <typename T> bool ListSortByWeight<T>::incrementWeight(const T &item)
+{
+    if(m_first == nullptr) return false;
+
+    ObjW* tmp = m_first;
+    while(tmp != m_end)
+    {
+        if(tmp->data == item)
+        {
+            tmp->weight++;
+            sortObjW(tmp);
+            return true;
+        }
+        tmp = tmp->next;
+    }
+    return false;
+}
+
+template <typename T> void ListSortByWeight<T>::clear()
+{
+    while(removeFirst());
+}
+
+template <typename T> bool ListSortByWeight<T>::remove(ListSortByWeight::iterator &iter)
+{
+    if(iter == start() || iter == end()) return false;
+
+    ObjW* tmp = iter.actual;
+    iter.actual = tmp->previous;
+
+    if(tmp == nullptr || tmp == m_start || tmp == m_end) return false;
+
+    if(tmp == m_first)
+    {
+        if(m_first->next == m_end)
+            m_first = m_last = nullptr;
+        else
+        {
+            m_first = m_first->next;
+            m_first->previous = m_start;
+            m_start->next = m_first;
+        }
+
+        delete tmp;
+    }
+    else if(tmp == m_last)
+    {
+        m_last = m_last->previous;
+        m_last->next = m_end;
+        m_end->previous = m_last;
+
+        delete tmp;
+    }
+    else
+    {
+        tmp->previous->next = tmp->next;
+        tmp->next->previous = tmp->previous;
+
+        delete tmp;
+    }
+
+    return true;
+}
+
+template <typename T> void ListSortByWeight<T>::sortObjW(ListSortByWeight::ObjW *o)
+{
+    if(o == nullptr) return;
+    if(o == m_start || o == m_end) return;
+
+    //sortowanie malająco
+    while((o->previous != m_start) && (o->weight > o->previous->weight))
+    {
+        swap(o, o->previous);
+    }
+    while((o->previous != m_end) && (o->weight < o->next->weight))
+    {
+        swap(o, o->next);
+    }
+}
+
+template <typename T> void ListSortByWeight<T>::swap(ListSortByWeight::ObjW *o1, ListSortByWeight::ObjW *o2)
+{
+    if(o1 == o2) return;
+    //sprawdzenie czy nie zamieniamy elementu listy z m_start lub m_end albo jakimś pustym obiektem
+    if(o1->previous == nullptr || o1->next == nullptr || o2->previous == nullptr || o2->next == nullptr) return;
+
+    ObjW* tmp;
+    if(o1->next == o2) //dwa kolejne
+    {
+        if(o1 == m_first) m_first = o2;
+        if(o2 == m_last) m_last = o1;
+
+        tmp = o1->previous;
+        o1->previous = o2;
+        o1->next = o2->next;
+        o2->previous = tmp;
+        o2->next = o1;
+    }
+    else if(o2->next == o1)
+    {
+        if(o2 == m_first) m_first = o1;
+        if(o1 == m_last) m_last = o2;
+
+        tmp = o2->previous;
+        o2->previous = o1;
+        o2->next = o1->next;
+        o1->previous = tmp;
+        o1->next = o2;
+    }
+    else
+    {
+        if(o1 == m_first) m_first = o2;
+        if(o1 == m_last) m_last = o2;
+        if(o2 == m_first) m_first = o1;
+        if(o2 == m_last) m_last = o1;
+
+        tmp = o1->previous;
+        o1->previous = o2->previous;
+        o2->previous = tmp;
+
+        tmp = o1->next;
+        o1->next = o2->next;
+        o2->next = tmp;
+    }
+
+    if(o2->previous != nullptr)
+        o2->previous->next = o2;
+    if(o2->next != nullptr)
+        o2->next->previous = o2;
+
+    if(o1->next != nullptr)
+        o1->next->previous = o1;
+    if(o1->previous != nullptr)
+        o1->previous->next = o1;
+}
+
+template <typename T> bool ListSortByWeight<T>::removeFirst()
+{
+    if(m_first == nullptr) return false;
+    ObjW* tmp = m_first;
+
+    if(m_first->next == m_end)
+    {
+        m_first = m_last = nullptr;
+        m_start->next = m_end;
+        m_end->previous = m_start;
+    }
+    else
+    {
+        m_first = m_first->next;
+        m_first->previous = m_start;
+    }
+
+    delete tmp;
+    return true;
+}
+#endif // LISTSORTBYWEIGHT_H

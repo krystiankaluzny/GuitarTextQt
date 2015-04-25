@@ -1,5 +1,4 @@
 #include "basemodel.h"
-#include <QDebug>
 
 BaseModel::BaseModel(QMap<QString, TreeItem *> *base, QObject *parent) :
     m_base(base),
@@ -11,7 +10,10 @@ void BaseModel::appendNewBase()
 {
     QString key = "NAZWA_0";
     int x = 0;
-    QList<QString> k = m_base->keys();
+    QList<QString> k;
+
+    if(!m_base->isEmpty())
+        k = m_base->keys();
 
     while(k.contains(key))
     {
@@ -19,7 +21,7 @@ void BaseModel::appendNewBase()
     }
 
     beginInsertRows(QModelIndex(), k.size(), k.size());
-    m_base->insert(key, nullptr);
+        m_base->insert(key, nullptr);
     endInsertRows();
 }
 
@@ -38,6 +40,22 @@ void BaseModel::removeBase(QModelIndex &index)
     }
 }
 
+void BaseModel::refresh()
+{
+    QList<QString> keys = m_base->keys();
+    QList<QString>::iterator iter;
+    for(iter = keys.begin(); iter != keys.end(); iter++)
+    {
+        QString key = *iter;
+        TreeItem* old = m_base->value(key);
+        if(old != nullptr)
+        {
+            m_base->operator [](key) = createDirTree(old->data(0).toString(), old->parent());
+            delete old;
+        }
+    }
+}
+
 int BaseModel::rowCount(const QModelIndex &parent) const
 {
     if(parent.isValid())
@@ -53,7 +71,7 @@ int BaseModel::columnCount(const QModelIndex &parent) const
 
 QModelIndex BaseModel::index(int row, int column, const QModelIndex &parent) const
 {
-    if(!parent.isValid())
+    if(!parent.isValid() && !m_base->isEmpty())
     {
         QList<QString> k = m_base->keys();
         TreeItem* item = m_base->value(k.at(row));
@@ -80,7 +98,7 @@ QVariant BaseModel::data(const QModelIndex &index, int role) const
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        if(index.column() == 0)
+        if(index.column() == 0 && !m_base->isEmpty())
         {
             QList<QString> k = m_base->keys();
             return QVariant(k.at(r));
@@ -113,7 +131,7 @@ bool BaseModel::setData(const QModelIndex &index, const QVariant &value, int rol
 
     if(role == Qt::EditRole)
     {
-        if(c == 0)
+        if(c == 0 && !m_base->isEmpty())
         {
             QList<QString> k = m_base->keys();
             if(!k.contains(value.toString()))
@@ -123,7 +141,7 @@ bool BaseModel::setData(const QModelIndex &index, const QVariant &value, int rol
                 return true;
             }
         }
-        else if(c == 1)
+        else if(c == 1 && !m_base->isEmpty())
         {
             QString key = this->index(r, 0, index.parent()).data().toString();
             TreeItem* old = m_base->value(key);
@@ -149,9 +167,9 @@ QVariant BaseModel::headerData(int section, Qt::Orientation orientation, int rol
     if(orientation == Qt::Horizontal)
     {
         if(section == 0)
-            return QString("Name");
+            return QString("Nazwa");
         if(section == 1)
-            return QString("Path");
+            return QString("Ścieżka");
     }
 
     return QVariant();

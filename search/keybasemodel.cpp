@@ -8,9 +8,9 @@ KeyBaseModel::KeyBaseModel(QMap<QString, TreeItem *> *base, QObject *parent) :
 
 int KeyBaseModel::rowCount(const QModelIndex &parent) const
 {
-    if(parent.isValid())
-        return 0;
-    return m_base->size();
+    if(!parent.isValid() && !m_base->isEmpty())
+        return m_base->size();
+    return 0;
 }
 
 int KeyBaseModel::columnCount(const QModelIndex &parent) const
@@ -20,11 +20,9 @@ int KeyBaseModel::columnCount(const QModelIndex &parent) const
 
 QModelIndex KeyBaseModel::index(int row, int column, const QModelIndex &parent) const
 {
-    if(!parent.isValid())
-    {
-        QList<QString> k = m_base->keys();
+    if(!parent.isValid() && row >= 0 && column >= 0)
         return createIndex(row, column);
-    }
+
     return QModelIndex();
 }
 
@@ -41,7 +39,7 @@ QVariant KeyBaseModel::data(const QModelIndex &index, int role) const
     if(r < 0 || r >= m_base->size())
         return QVariant();
 
-    if(role == Qt::DisplayRole)
+    if(role == Qt::DisplayRole && !m_base->isEmpty())
     {
         QList<QString> k = m_base->keys();
         return QVariant(k.at(r));

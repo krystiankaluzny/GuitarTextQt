@@ -49,6 +49,7 @@ int TreeItem::columnCount() const
 
 QVariant TreeItem::data(int column) const
 {
+    //"Full Path" << "Name" << "Last Modification" << "Synchronize" << "Priority";
     return itemData.value(column);
 }
 
@@ -85,8 +86,11 @@ bool TreeItem::insertChildren(int position, int count, int columns)
 
 bool TreeItem::removeChildren(int position, int count)
 {
-    if(position < 0 || position + count > childItems.size())
+    if(position < 0)
         return false;
+
+    if(position + count > childItems.size())
+        count = childItems.size() - position;
 
     for(int i = 0; i < count; i++)
     {

@@ -1,11 +1,6 @@
 #include "searchdialog.h"
 #include "ui_searchdialog.h"
-#include <QDebug>
-
-inline int Min(int a, int b, int c)
-{
-    return a < b ? (a < c ? a : c) : (b < c ? b : c);
-}
+#include "mysharedata.h"
 
 void Print(int** t, int k, int m)
 {
@@ -15,29 +10,32 @@ void Print(int** t, int k, int m)
         str.clear();
         for(int j = 0; j < m; j++)
             str = str + QString::number(t[i][j]) + " ";
-
-        qDebug() << str;
     }
 }
 
-SearchDialog::SearchDialog(QMap<QString, TreeItem *> *m_text_bases, QWidget *parent) :
-    QDialog(parent),
+SearchDialog::SearchDialog(QWidget *parent) :
+    AutoHidingDialog(parent),
     ui(new Ui::SearchDialog),
-    m_bases(m_text_bases)
+    m_key_model(nullptr),
+    m_dir_model(nullptr),
+    m_item_selection_model(nullptr)
 {
     ui->setupUi(this);
 
-    QStringList headers;
-    headers << "Full Path" << "Name" << "Last Modification" << "Synchronize" << "Priority";
-    m_dir_model = new MyDirModel(headers);
-    m_dir_model->setColumnCount(1);
-    m_dir_model->canDelete(false);
-    ui->treeView_base->setModel(m_dir_model);
-
-    m_key_model = new KeyBaseModel(m_bases);
-    ui->comboBox->setModel(m_key_model);
+    resetModels();
 
     ui->treeView_base->setDragEnabled(true);
+
+    //------------Wypełnianie boxa z kodowaniami------------
+    ui->comboBox_encoder->clear();
+    ui->comboBox_encoder->addItem("UTF-8");
+    ui->comboBox_encoder->addItem("UTF-16");
+    ui->comboBox_encoder->addItem("Windows-1250");
+    ui->comboBox_encoder->addItem("ISO 8859-1");
+    ui->comboBox_encoder->addItem("ISO 8859-2");
+
+    if(!MyShareData::m_encode.isEmpty())
+        ui->comboBox_encoder->setCurrentText(MyShareData::m_encode);
 
     connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(newFocus(QWidget*,QWidget*)));
 }
@@ -45,6 +43,30 @@ SearchDialog::SearchDialog(QMap<QString, TreeItem *> *m_text_bases, QWidget *par
 SearchDialog::~SearchDialog()
 {
     delete ui;
+}
+
+void SearchDialog::setCurrentEncode(const QString &arg1)
+{
+    ui->comboBox_encoder->setCurrentText(arg1);
+}
+
+void SearchDialog::resetModels()
+{
+    QStringList headers;
+    headers << "Full Path" << "Name" << "Last Modification" << "Synchronize" << "Priority";
+
+    if(m_dir_model) delete m_dir_model;
+    m_dir_model = new MyDirModel(headers);
+    m_dir_model->setColumnCount(1);
+    m_dir_model->canDelete(false);
+    QItemSelectionModel *m = ui->treeView_base->selectionModel();
+    ui->treeView_base->setModel(m_dir_model);
+    delete m;
+
+    ui->comboBox->clear();
+    if(m_key_model) delete m_key_model;
+    m_key_model = new KeyBaseModel(&MyShareData::m_text_bases);
+    ui->comboBox->setModel(m_key_model);
 }
 
 void SearchDialog::newFocus(QWidget* old, QWidget* now)
@@ -59,12 +81,15 @@ void SearchDialog::newFocus(QWidget* old, QWidget* now)
 
 void SearchDialog::on_comboBox_currentIndexChanged(const QString &arg1)
 {
-    m_dir_model->removeRow(0);
-    m_dir_model->appendItem(m_bases->value(arg1));
+    int rows_count = m_dir_model->rowCount();
+    m_dir_model->removeRows(0, rows_count);
+    m_dir_model->appendItem(MyShareData::m_text_bases.value(arg1));
+    ui->lineEdit->clear();
 }
 
 void SearchDialog::FindFiles(TreeItem *item, const QString &t)
 {
+    if(item == nullptr) return;
     if(item->isDir())
     {
         QList<TreeItem*> children = item->getChildren();
@@ -82,11 +107,11 @@ void SearchDialog::FindFiles(TreeItem *item, const QString &t)
 
 void SearchDialog::on_lineEdit_textChanged(const QString &arg1)
 {
+    ui->listWidget->clear();
     QString text = arg1;
     if(!text.isEmpty())
     {
-        TreeItem* item = m_bases->value(ui->comboBox->currentText());
-        ui->listWidget->clear();
+        TreeItem* item = MyShareData::m_text_bases.value(ui->comboBox->currentText());
 
         m_found_files.clear();
         FindFiles(item, text.toLower());
@@ -95,8 +120,11 @@ void SearchDialog::on_lineEdit_textChanged(const QString &arg1)
         {
             TreeItem* it = m_found_files.at(i);
             QListWidgetItem *item = new QListWidgetItem;
-            item->setText(it->data(1).toString());
-            item->setData(5, it->data(0).toString());
+            QStringList strlist = it->data(0).toString().split('/');
+            QString parent_dir = strlist.size() >= 2 ? strlist.at(strlist.size() - 2) : "";
+            item->setText(it->data(1).toString() + " - " + parent_dir);
+            item->setToolTip(it->data(0).toString());
+            item->setData(Qt::WhatsThisRole, it->data(0).toString());
             ui->listWidget->addItem(item);
         }
     }
@@ -118,4 +146,9 @@ void SearchDialog::on_treeView_base_activated(const QModelIndex &index)
             path = item->data(0).toString();
             emit doubleClicked(path);
         }
+}
+
+void SearchDialog::on_comboBox_encoder_activated(const QString &arg1)
+{
+    emit encodeChanged(arg1);
 }

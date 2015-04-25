@@ -1,18 +1,15 @@
 <RCC>
     <qresource prefix="/file">
-        <file>icon/background.png</file>
-        <file>icon/copy.png</file>
-        <file>icon/cut.png</file>
         <file>icon/exit.png</file>
-        <file>icon/font.png</file>
         <file>icon/new.png</file>
-        <file>icon/paste.png</file>
         <file>icon/refresh.png</file>
         <file>icon/save.png</file>
         <file>icon/saveas.png</file>
-        <file>icon/text.png</file>
         <file>icon/open.png</file>
         <file>icon/icon.png</file>
+        <file>icon/search.png</file>
+        <file>icon/propertise.png</file>
+        <file>icon/quick.png</file>
     </qresource>
     <qresource prefix="/">
         <file>icon/text-plain.png</file>

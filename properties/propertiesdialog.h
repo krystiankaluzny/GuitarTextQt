@@ -2,7 +2,7 @@
 #define PROPERTIESDIALOG_H
 
 #include <QDialog>
-#include <QSettings>
+#include <QTextDocument>
 #include "treeitem.h"
 #include "basemodel.h"
 #include "treeitemdelegate.h"
@@ -16,7 +16,7 @@ class PropertiesDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit PropertiesDialog(QSettings& settings, QMap<QString, TreeItem *> *m_text_bases, QWidget *parent = 0);
+    explicit PropertiesDialog(QWidget *parent = 0);
     ~PropertiesDialog();
 
     int m_chords;
@@ -25,9 +25,12 @@ public:
     int m_column;
     bool m_fullscreen;
     int m_max_last_open;
+    int m_max_favourites;
     QColor m_text;
     QColor m_background;
-    int m_speed;
+    QColor m_chords_color;
+    bool m_auto_column;
+    QFont m_font;
 
 private slots:
 
@@ -49,17 +52,25 @@ private slots:
 
     void on_pushButton_domyslne_clicked();
 
-    void on_spinBox_speed_valueChanged(int arg1);
-
-    void on_buttonBox_accepted();
-
     void on_pushButton_add_base_clicked();
 
     void on_pushButton_delete_base_clicked();
 
+    void on_checkBox_auto_column_stateChanged(int arg1);
+
+    void on_pushButton_chords_color_3_clicked();
+
+    void on_pushButton_refresh_clicked();
+
+    void on_spinBox__max_favourites_valueChanged(int arg1);
+
+    void on_pushButton_font_clicked();
+
+    void on_buttonBox_accepted();
+
 private:
     Ui::PropertiesDialog *ui;
-    QSettings& s;
+    QTextDocument* doc;
 
     BaseModel* m_base_model;
     TreeItemDelegate* delegate;

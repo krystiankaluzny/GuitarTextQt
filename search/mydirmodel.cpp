@@ -4,6 +4,7 @@
 #include <QDateTime>
 #include <QColor>
 #include <QIcon>
+#include <QUrl>
 
 MyDirModel::MyDirModel(const QStringList &headers, QStringList data, int column_count, QObject *parent)
     : QAbstractItemModel(parent),
@@ -166,6 +167,8 @@ bool MyDirModel::insertRows(int row, int count, const QModelIndex &parent)
 
 bool MyDirModel::removeRows(int row, int count, const QModelIndex &parent)
 {
+    if(count < 1) return false;
+
     TreeItem* parentItem = getItem(parent);
     bool success = true;
 
@@ -203,6 +206,7 @@ void MyDirModel::setColumnCount(int count)
 
 void MyDirModel::appendItem(TreeItem *item)
 {
+    if(item == nullptr) return;
     item->setParent(rootItem);
     rootItem->appendChild(item);
 }
@@ -214,20 +218,20 @@ void MyDirModel::canDelete(bool can)
 
 QMimeData* MyDirModel::mimeData(const QModelIndexList &indexes) const
 {
-    QMimeData* mimeData = new QMimeData();
+    QMimeData* mimeD = new QMimeData();
     if(!indexes.isEmpty())
     {
-        quintptr address = reinterpret_cast<quintptr>(indexes.at(0).internalPointer());
-        QByteArray encodedData(QString::number(address).toLatin1());
-        mimeData->setData("application/treeitem.ptr", encodedData);
+        TreeItem* address = reinterpret_cast<TreeItem*>(indexes.at(0).internalPointer());
+//        QByteArray encodedData(address->data(0).toByteArray());
+//        mimeD->setData("application/treeitem.ptr", encodedData);
+        mimeD->setUrls(QList<QUrl>() << address->data(0).toUrl());
     }
 
-    return mimeData;
+    return mimeD;
 }
 
 int MyDirModel::rowCount(const QModelIndex &parent) const
 {
     TreeItem* parentItem = getItem(parent);
-
     return parentItem->childCount();
 }

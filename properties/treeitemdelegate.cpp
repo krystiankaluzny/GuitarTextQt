@@ -1,6 +1,5 @@
 #include "treeitemdelegate.h"
 #include <QFileDialog>
-#include <QDebug>
 
 TreeItemDelegate::TreeItemDelegate(QObject *parent) :
     QItemDelegate(parent)

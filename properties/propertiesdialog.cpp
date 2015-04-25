@@ -1,28 +1,32 @@
 #include "propertiesdialog.h"
 #include "ui_propertiesdialog.h"
+#include "mysharedata.h"
 #include <QColorDialog>
+#include <QFontDialog>
 
-
-PropertiesDialog::PropertiesDialog(QSettings &settings, QMap<QString, TreeItem*>* m_text_bases, QWidget *parent) :
+PropertiesDialog::PropertiesDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PropertiesDialog),
-    s(settings)
+    m_auto_column(MyShareData::m_auto_column)
 {
     ui->setupUi(this);
 
-    m_base_model = new BaseModel(m_text_bases);
+    QList<QAbstractButton *> buttons = ui->buttonBox->buttons();
+    if(buttons.size() == 2)
+    {
+        buttons.at(0)->setText("Ok");
+        buttons.at(1)->setText("Anuluj");
+    }
+    m_base_model = new BaseModel(&MyShareData::m_text_bases);
 
     delegate = new TreeItemDelegate;
     ui->tableView_bases->setModel(m_base_model);
     ui->tableView_bases->setItemDelegateForColumn(1, delegate);
 
-    m_column = settings.value("editor/colimn_count", 3).toInt();
+    m_column = MyShareData::m_columns_count;
     ui->spinBox_column->setValue(m_column);
 
-    m_speed = settings.value("editor/scrolling_speed", 8).toInt();
-    ui->spinBox_speed->setValue(m_speed);
-
-    m_fullscreen = settings.value("app/fullscreen", false).toBool();
+    m_fullscreen = MyShareData::m_fullscreen;
     ui->checkBox_fullscreen->setChecked(m_fullscreen);
 
     ui->comboBox_encoding->addItem("UTF-8");
@@ -31,27 +35,56 @@ PropertiesDialog::PropertiesDialog(QSettings &settings, QMap<QString, TreeItem*>
     ui->comboBox_encoding->addItem("ISO 8859-1");
     ui->comboBox_encoding->addItem("ISO 8859-2");
 
-    m_encode = settings.value("editor/code", "UTF-8").toString();
+    m_encode = MyShareData::m_encode;
     ui->comboBox_encoding->setCurrentText(m_encode);
 
-    m_chords = settings.value("editor/chords", 1).toInt();
+    m_chords = MyShareData::m_chords;
     ui->spinBox_chords->setValue(m_chords);
 
-    m_shift = settings.value("editor/shift", 0).toInt();
+    m_shift = MyShareData::m_chords_shift;
     ui->spinBox_shift->setValue(m_shift);
 
-    m_max_last_open = settings.value("app/files_history_max_size", 10).toInt();
+    m_max_last_open = MyShareData::m_files_history.getMaxSize();
     ui->spinBox__max_last_open->setValue(m_max_last_open);
 
-    QPalette palette = ui->pushButton_text_color->palette();
-    m_text = settings.value("editor/text_color", QColor(255, 255, 255)).value<QColor>();
-    palette.setColor(QPalette::Button, m_text);
-    ui->pushButton_text_color->setPalette(palette);
+    m_max_favourites = MyShareData::m_favourites_max_size;
+    ui->spinBox__max_favourites->setValue(m_max_favourites);
 
-    QPalette palette2 = ui->pushButton_background_color->palette();
-    m_background = settings.value("editor/background_color", QColor(0, 0, 0)).value<QColor>();
-    palette2.setColor(QPalette::Button, m_background);
-    ui->pushButton_background_color->setPalette(palette2);
+    m_text = MyShareData::m_text_color;
+    m_background = MyShareData::m_background_color;
+    m_chords_color = MyShareData::m_chords_color;
+
+    m_font = MyShareData::m_font;
+
+    if(!m_auto_column)
+        ui->checkBox_auto_column->setChecked(false);
+
+    doc = new QTextDocument;
+    doc->setDefaultStyleSheet(".akord{color: " + MyShareData::m_chords_color.name() + "}");
+    doc->setHtml(QString("Test <span class = \"akord\">a C D</span>"));
+    ui->et_simple_font->setDocument(doc);
+
+    QPalette textPalette = ui->et_simple_font->palette();
+    textPalette.setColor(QPalette::Text, m_text);
+    textPalette.setColor(QPalette::Base, m_background);
+    ui->et_simple_font->setPalette(textPalette);
+
+    ui->et_simple_font->setFont(m_font);
+
+    ui->kse_new->setKeySequence(MyShareData::kse_new);
+    ui->kse_open->setKeySequence(MyShareData::kse_open);
+    ui->kse_save->setKeySequence(MyShareData::kse_save);
+    ui->kse_save_as->setKeySequence(MyShareData::kse_save_as);
+    ui->kse_reload->setKeySequence(MyShareData::kse_reload);
+    ui->kse_chords_up->setKeySequence(MyShareData::kse_chords_up);
+    ui->kse_chords_down->setKeySequence(MyShareData::kse_chords_down);
+    ui->kse_shift_up->setKeySequence(MyShareData::kse_shift_up);
+    ui->kse_shift_down->setKeySequence(MyShareData::kse_shift_down);
+    ui->kse_fullscreen->setKeySequence(MyShareData::kse_fullscreen);
+    ui->kse_properties->setKeySequence(MyShareData::kse_properties);
+    ui->kse_find->setKeySequence(MyShareData::kse_find);
+    ui->kse_quick_options->setKeySequence(MyShareData::kse_quick_options);
+    ui->kse_close->setKeySequence(MyShareData::kse_close);
 }
 
 PropertiesDialog::~PropertiesDialog()
@@ -92,36 +125,48 @@ void PropertiesDialog::on_spinBox__max_last_open_valueChanged(int arg1)
 void PropertiesDialog::on_pushButton_text_color_clicked()
 {
     //text color
-    QPalette textPalette = ui->pushButton_text_color->palette();
-    QColor old = textPalette.color(QPalette::Button);
-    QColor textColor = QColorDialog::getColor(old, this);
+    QColor textColor = QColorDialog::getColor(textColor, this);
 
-    textPalette.setColor(QPalette::Button, (textColor.isValid() ? textColor : old));
-
-    m_text = textPalette.color(QPalette::Button);
-
-    ui->pushButton_text_color->setPalette(textPalette);
+    if(textColor.isValid())
+    {
+        m_text = textColor;
+        QPalette textPalette = ui->et_simple_font->palette();
+        textPalette.setColor(QPalette::Text, m_text);
+        ui->et_simple_font->setPalette(textPalette);
+    }
 }
 
 void PropertiesDialog::on_pushButton_background_color_clicked()
 {
     //background color
-    QPalette textPalette = ui->pushButton_background_color->palette();
-    QColor old = textPalette.color(QPalette::Button);
-    QColor backgroundColor = QColorDialog::getColor(old, this);
+    QColor backgroundColor = QColorDialog::getColor(m_background, this);
 
-    textPalette.setColor(QPalette::Button, (backgroundColor.isValid() ? backgroundColor : old));
-
-    m_background = textPalette.color(QPalette::Button);
-
-    ui->pushButton_background_color->setPalette(textPalette);
+    if(backgroundColor.isValid())
+    {
+        m_background = backgroundColor;
+        QPalette textPalette = ui->et_simple_font->palette();
+        textPalette.setColor(QPalette::Base, m_background);
+        ui->et_simple_font->setPalette(textPalette);
+    }
 }
 
-void PropertiesDialog::on_spinBox_speed_valueChanged(int arg1)
+void PropertiesDialog::on_pushButton_chords_color_3_clicked()
 {
-    m_speed = arg1;
+    //chords color
+    QColor chordsColor = QColorDialog::getColor(m_chords_color, this);
+
+    if(chordsColor.isValid())
+    {
+        m_chords_color = chordsColor;
+        doc->setDefaultStyleSheet(".akord{color: " + m_chords_color.name() + "}");
+        doc->setHtml(QString("Test <span class = \"akord\">a C D</span>"));
+    }
 }
 
+void PropertiesDialog::on_spinBox__max_favourites_valueChanged(int arg1)
+{
+    m_max_favourites = arg1;
+}
 void PropertiesDialog::on_pushButton_domyslne_clicked()
 {
     m_chords = 1;
@@ -132,36 +177,36 @@ void PropertiesDialog::on_pushButton_domyslne_clicked()
     m_max_last_open = 10;
     m_text = QColor(255, 255, 255);
     m_background = QColor(0, 0, 0);
-    m_speed = 8;
+    m_chords_color = QColor(255, 0, 0);
 
     ui->spinBox_column->setValue(m_column);
-    ui->spinBox_speed->setValue(m_speed);
     ui->checkBox_fullscreen->setChecked(m_fullscreen);
     ui->comboBox_encoding->setCurrentText(m_encode);
     ui->spinBox_chords->setValue(m_chords);
     ui->spinBox_shift->setValue(m_shift);
     ui->spinBox__max_last_open->setValue(m_max_last_open);
 
-    QPalette palette = ui->pushButton_text_color->palette();
-    palette.setColor(QPalette::Button, m_text);
-    ui->pushButton_text_color->setPalette(palette);
+    QPalette textPalette = ui->et_simple_font->palette();
+    textPalette.setColor(QPalette::Text, m_text);
+    textPalette.setColor(QPalette::Base, m_background);
+    ui->et_simple_font->setPalette(textPalette);
 
-    QPalette palette2 = ui->pushButton_background_color->palette();
-    palette2.setColor(QPalette::Button, m_background);
-    ui->pushButton_background_color->setPalette(palette2);
-}
+    ui->et_simple_font->setFont(m_font);
 
-void PropertiesDialog::on_buttonBox_accepted()
-{
-    s.setValue("editor/colimn_count", m_column);
-    s.setValue("editor/scrolling_speed", m_speed);
-    s.setValue("app/fullscreen", m_fullscreen);
-    s.setValue("editor/code", m_encode);
-    s.setValue("editor/chords", m_chords);
-    s.setValue("editor/shift", m_shift);
-    s.setValue("app/files_history_max_size", m_max_last_open);
-    s.setValue("editor/text_color", m_text);
-    s.setValue("editor/background_color", m_background);
+    ui->kse_new->setKeySequence(QKeySequence(Qt::CTRL + Qt::Key_N));
+    ui->kse_open->setKeySequence(QKeySequence(Qt::CTRL + Qt::Key_O));
+    ui->kse_save->setKeySequence(QKeySequence(Qt::CTRL + Qt::Key_S));
+    ui->kse_save_as->setKeySequence(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
+    ui->kse_reload->setKeySequence(QKeySequence(Qt::Key_F5));
+    ui->kse_chords_up->setKeySequence(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Up));
+    ui->kse_chords_down->setKeySequence(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Down));
+    ui->kse_shift_up->setKeySequence(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Right));
+    ui->kse_shift_down->setKeySequence(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Left));
+    ui->kse_fullscreen->setKeySequence(QKeySequence(Qt::Key_F11));
+    ui->kse_properties->setKeySequence(QKeySequence(Qt::CTRL + Qt::Key_P));
+    ui->kse_find->setKeySequence(QKeySequence(Qt::CTRL + Qt::Key_F));
+    ui->kse_quick_options->setKeySequence(QKeySequence(Qt::CTRL + Qt::Key_G));
+    ui->kse_close->setKeySequence(QKeySequence(Qt::CTRL + Qt::Key_Q));
 }
 
 void PropertiesDialog::on_pushButton_add_base_clicked()
@@ -173,4 +218,56 @@ void PropertiesDialog::on_pushButton_delete_base_clicked()
 {
     QModelIndex index = ui->tableView_bases->currentIndex();
     m_base_model->removeBase(index);
+}
+
+void PropertiesDialog::on_checkBox_auto_column_stateChanged(int arg1)
+{
+    if(arg1 == Qt::Checked)
+    {
+        ui->label_5->setDisabled(true);
+        ui->spinBox_column->setDisabled(true);
+        m_column = 1000;
+        m_auto_column = true;
+    }
+    else if(arg1 == Qt::Unchecked)
+    {
+        ui->label_5->setDisabled(false);
+        ui->spinBox_column->setDisabled(false);
+        m_column = ui->spinBox_column->value();
+        m_auto_column = false;
+    }
+}
+
+void PropertiesDialog::on_pushButton_refresh_clicked()
+{
+    m_base_model->refresh();
+}
+
+void PropertiesDialog::on_pushButton_font_clicked()
+{
+    bool ok;
+    QFont font = QFontDialog::getFont(&ok, m_font, this);
+    if(ok)
+    {
+        m_font = font;
+        ui->et_simple_font->setFont(m_font);
+    }
+}
+
+void PropertiesDialog::on_buttonBox_accepted()
+{
+    MyShareData::kse_new = ui->kse_new->keySequence();
+    MyShareData::kse_open = ui->kse_open->keySequence();
+    MyShareData::kse_save = ui->kse_save->keySequence();
+    MyShareData::kse_save_as = ui->kse_save_as->keySequence();
+    MyShareData::kse_reload = ui->kse_reload->keySequence();
+    MyShareData::kse_chords_up = ui->kse_chords_up->keySequence();
+    MyShareData::kse_chords_down = ui->kse_chords_down->keySequence();
+    MyShareData::kse_shift_up = ui->kse_shift_up->keySequence();
+    MyShareData::kse_shift_down = ui->kse_shift_down->keySequence();
+    MyShareData::kse_fullscreen = ui->kse_fullscreen->keySequence();
+    MyShareData::kse_properties = ui->kse_properties->keySequence();
+    MyShareData::kse_find = ui->kse_find->keySequence();
+    MyShareData::kse_quick_options = ui->kse_quick_options->keySequence();
+    MyShareData::kse_close = ui->kse_close->keySequence();
 }

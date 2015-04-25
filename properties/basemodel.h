@@ -11,6 +11,7 @@ public:
     explicit BaseModel(QMap<QString, TreeItem*>* base, QObject *parent = 0);
     void appendNewBase();
     void removeBase(QModelIndex& index);
+    void refresh();
 
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;

@@ -163,56 +163,38 @@ void Chord::FindChordIndex()
     }
 }
 
-
-
 QStringList ShiftChordsList(QStringList chords, int shift)
 {
-    Chord tmp;
-    tmp.SetShift(shift);
+    Chord tmp_chord;
+    tmp_chord.SetShift(shift);
     QStringList result;
-    QStringList t;
+    QString tmp1, tmp2, tmp3;
 
     for(int i = 0; i < chords.size(); i++)
     {
-        if(chords.at(i).contains("("))
+        tmp1 = chords.at(i);
+        for(int j = 0; j < tmp1.size(); j++)
         {
-            t = chords.at(i).split("(");
-
-            if(!t.at(0).isEmpty())
-            {
-                tmp.SetChordName(t.at(0));
-                if(chords.at(i).at(0) == '(')
-                    result << "(" << tmp.ShiftChord();
-                else
-                    result << tmp.ShiftChord() << "(" ;
-            }
+            if(tmp1.at(j) != '(' && tmp1.at(j) != ')' && tmp1.at(j) != '-')
+                tmp2.append(tmp1.at(j));
             else
-                result << "(" ;
-
-
-            if(t.size() > 1)
             {
-                t = t.at(1).split(")");
-                if(t.size() > 1)
-                {
-                    if(!t.at(0).isEmpty())
-                    {
-                        tmp.SetChordName(t.at(0));
-                        result << tmp.ShiftChord() << ")";
-                    }
-                    if(!t.at(1).isEmpty())
-                    {
-                        tmp.SetChordName(t.at(1));
-                        result << tmp.ShiftChord();
-                    }
-                }
+                tmp_chord.SetChordName(tmp2);
+                tmp3.append(tmp_chord.ShiftChord());
+                tmp3.append(tmp1.at(j));
+                tmp2.clear();
             }
         }
-        else
+        if(!tmp2.isEmpty())
         {
-            tmp.SetChordName(chords.at(i));
-            result << tmp.ShiftChord();
+            tmp_chord.SetChordName(tmp2);
+            tmp3.append(tmp_chord.ShiftChord());
         }
+        result << tmp3;
+
+        tmp3.clear();
+        tmp2.clear();
+        tmp1.clear();
     }
 
     return result;

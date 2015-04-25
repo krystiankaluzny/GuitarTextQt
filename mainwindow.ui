@@ -17,7 +17,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>GuitarText</string>
   </property>
   <property name="windowIcon">
    <iconset resource="icons.qrc">
@@ -124,186 +124,12 @@
       </disabled>
      </palette>
     </property>
+    <property name="acceptDrops">
+     <bool>false</bool>
+    </property>
     <property name="autoFillBackground">
      <bool>false</bool>
     </property>
-   </widget>
-   <widget class="QWidget" name="view_widget" native="true">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>0</y>
-      <width>401</width>
-      <height>32</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Chords:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSpinBox" name="spinBox_chords">
-       <property name="maximum">
-        <number>100</number>
-       </property>
-       <property name="value">
-        <number>1</number>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="l_shift">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Shift</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSpinBox" name="spinBox_shift">
-       <property name="minimum">
-        <number>0</number>
-       </property>
-       <property name="maximum">
-        <number>11</number>
-       </property>
-       <property name="value">
-        <number>0</number>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Encoding:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBox_encoder"/>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>Columns</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSpinBox" name="spinBox_column">
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>5</number>
-       </property>
-       <property name="singleStep">
-        <number>1</number>
-       </property>
-       <property name="value">
-        <number>3</number>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="scroling_widget" native="true">
-    <property name="geometry">
-     <rect>
-      <x>4</x>
-      <y>40</y>
-      <width>241</width>
-      <height>32</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <widget class="QLabel" name="label_3">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Speed</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSpinBox" name="spinBox_speed">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximum">
-        <number>20</number>
-       </property>
-       <property name="singleStep">
-        <number>1</number>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_start">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Start</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_stop">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Stop</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="checkBox_loop">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Loop</string>
-       </property>
-       <property name="tristate">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -312,16 +138,16 @@
      <x>0</x>
      <y>0</y>
      <width>932</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>Plik</string>
     </property>
     <widget class="QMenu" name="menuLast_open">
      <property name="title">
-      <string>Last open</string>
+      <string>Ostatnio otwarte</string>
      </property>
      <addaction name="separator"/>
     </widget>
@@ -332,41 +158,48 @@
     <addaction name="actionSave_as"/>
     <addaction name="separator"/>
     <addaction name="actionRefresh"/>
-    <addaction name="actionSearch_file"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
-     <string>Tools</string>
+     <string>Narzędzia</string>
     </property>
-    <addaction name="actionFont"/>
-    <addaction name="actionText_Color"/>
-    <addaction name="actionBackground_Color"/>
-    <addaction name="actionSwap_colors"/>
     <addaction name="separator"/>
     <addaction name="actionNext_Chords"/>
     <addaction name="actionPrevious_Chords"/>
     <addaction name="separator"/>
-    <addaction name="actionFull_Screen"/>
-    <addaction name="separator"/>
     <addaction name="actionNext_schift_chords"/>
     <addaction name="actionPrevious_schift_chords"/>
     <addaction name="separator"/>
+    <addaction name="actionFull_Screen"/>
+    <addaction name="separator"/>
     <addaction name="actionSearch"/>
     <addaction name="actionProperties"/>
+    <addaction name="actionQuickOptions"/>
    </widget>
    <widget class="QMenu" name="menuInfo">
     <property name="title">
-     <string>Info</string>
+     <string>Pomoc</string>
     </property>
     <addaction name="actionAbout_Qt"/>
+    <addaction name="actionGuitarText"/>
+   </widget>
+   <widget class="QMenu" name="menuFavourite">
+    <property name="title">
+     <string>Ulubione</string>
+    </property>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
+   <addaction name="menuFavourite"/>
    <addaction name="menuInfo"/>
   </widget>
-  <widget class="QToolBar" name="mainToolBar">
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -376,19 +209,18 @@
    <addaction name="actionNew"/>
    <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
-   <addaction name="actionFont"/>
-   <addaction name="actionText_Color"/>
-   <addaction name="actionBackground_Color"/>
    <addaction name="actionRefresh"/>
+   <addaction name="actionSearch"/>
+   <addaction name="actionQuickOptions"/>
+   <addaction name="actionProperties"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionNew">
    <property name="icon">
     <iconset resource="icons.qrc">
      <normaloff>:/file/icon/new.png</normaloff>:/file/icon/new.png</iconset>
    </property>
    <property name="text">
-    <string>New</string>
+    <string>Nowy</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -400,7 +232,7 @@
      <normaloff>:/file/icon/open.png</normaloff>:/file/icon/open.png</iconset>
    </property>
    <property name="text">
-    <string>Open</string>
+    <string>Otwórz</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -412,7 +244,7 @@
      <normaloff>:/file/icon/save.png</normaloff>:/file/icon/save.png</iconset>
    </property>
    <property name="text">
-    <string>Save</string>
+    <string>Zapisz</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -424,7 +256,7 @@
      <normaloff>:/file/icon/saveas.png</normaloff>:/file/icon/saveas.png</iconset>
    </property>
    <property name="text">
-    <string>Save as</string>
+    <string>Zapisz jako</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
@@ -436,7 +268,7 @@
      <normaloff>:/file/icon/refresh.png</normaloff>:/file/icon/refresh.png</iconset>
    </property>
    <property name="text">
-    <string>Refresh</string>
+    <string>Wczytaj ponownie</string>
    </property>
    <property name="shortcut">
     <string>F5</string>
@@ -448,42 +280,15 @@
      <normaloff>:/file/icon/exit.png</normaloff>:/file/icon/exit.png</iconset>
    </property>
    <property name="text">
-    <string>Exit</string>
+    <string>Wyjście</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="actionFont">
-   <property name="icon">
-    <iconset resource="icons.qrc">
-     <normaloff>:/file/icon/font.png</normaloff>:/file/icon/font.png</iconset>
-   </property>
-   <property name="text">
-    <string>Font</string>
-   </property>
-  </action>
-  <action name="actionText_Color">
-   <property name="icon">
-    <iconset resource="icons.qrc">
-     <normaloff>:/file/icon/text.png</normaloff>:/file/icon/text.png</iconset>
-   </property>
-   <property name="text">
-    <string>Text Color</string>
-   </property>
-  </action>
-  <action name="actionBackground_Color">
-   <property name="icon">
-    <iconset resource="icons.qrc">
-     <normaloff>:/file/icon/background.png</normaloff>:/file/icon/background.png</iconset>
-   </property>
-   <property name="text">
-    <string>Background Color</string>
-   </property>
-  </action>
   <action name="actionNext_Chords">
    <property name="text">
-    <string>Next Chords</string>
+    <string>Następna wersja akordów</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Up</string>
@@ -491,7 +296,7 @@
   </action>
   <action name="actionPrevious_Chords">
    <property name="text">
-    <string>Previous Chords</string>
+    <string>Poprzednia wersja akordów</string>
    </property>
    <property name="toolTip">
     <string>Previous Chords</string>
@@ -502,7 +307,7 @@
   </action>
   <action name="actionAbout_Qt">
    <property name="text">
-    <string>About Qt</string>
+    <string>O Qt</string>
    </property>
   </action>
   <action name="actionFull_Screen">
@@ -510,7 +315,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Full Screen</string>
+    <string>Pełny ekran</string>
    </property>
    <property name="shortcut">
     <string>F11</string>
@@ -518,7 +323,7 @@
   </action>
   <action name="actionNext_schift_chords">
    <property name="text">
-    <string>Next schift chords</string>
+    <string>Transpozycja w górę</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Right</string>
@@ -526,51 +331,53 @@
   </action>
   <action name="actionPrevious_schift_chords">
    <property name="text">
-    <string>Previous schift chords</string>
+    <string>Transpozycja w dół</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Left</string>
    </property>
   </action>
-  <action name="actionSwap_colors">
-   <property name="text">
-    <string>Swap colors</string>
-   </property>
-  </action>
-  <action name="actionSearch_file">
-   <property name="text">
-    <string>Search file</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+O</string>
-   </property>
-  </action>
   <action name="actionProperties">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/file/icon/propertise.png</normaloff>:/file/icon/propertise.png</iconset>
+   </property>
    <property name="text">
-    <string>Properties</string>
+    <string>Właściwości</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
    </property>
   </action>
   <action name="actionSearch">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/file/icon/search.png</normaloff>:/file/icon/search.png</iconset>
+   </property>
    <property name="text">
-    <string>Search</string>
+    <string>Wyszukaj w bazie</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+F</string>
    </property>
   </action>
+  <action name="actionGuitarText">
+   <property name="text">
+    <string>O GuitarText</string>
+   </property>
+  </action>
+  <action name="actionQuickOptions">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/file/icon/quick.png</normaloff>:/file/icon/quick.png</iconset>
+   </property>
+   <property name="text">
+    <string>Szybkie opcje</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
-  <tabstop>spinBox_chords</tabstop>
-  <tabstop>spinBox_shift</tabstop>
-  <tabstop>spinBox_column</tabstop>
-  <tabstop>spinBox_speed</tabstop>
-  <tabstop>pushButton_start</tabstop>
-  <tabstop>pushButton_stop</tabstop>
-  <tabstop>checkBox_loop</tabstop>
   <tabstop>textEdit</tabstop>
  </tabstops>
  <resources>

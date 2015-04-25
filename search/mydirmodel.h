@@ -42,7 +42,6 @@ private:
     TreeItem* rootItem;
     bool m_can_delete; //należy ustawić na fałsz jeżeli drzewa są tworzone na zewnątrz modelu
     int m_column_count;
-
 };
 
 #endif // MYDIRMODEL_H

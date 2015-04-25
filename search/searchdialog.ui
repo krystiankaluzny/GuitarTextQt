@@ -11,11 +11,19 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Search Dialog</string>
+   <string>Okno wyszukiwania</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../icons.qrc">
+    <normaloff>:/file/icon/search.png</normaloff>:/file/icon/search.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QComboBox" name="comboBox"/>
+    <widget class="QComboBox" name="comboBox">
+     <property name="toolTip">
+      <string>Wybierz bazę tekstów</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QTreeView" name="treeView_base"/>
@@ -24,13 +32,19 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QLabel" name="label">
+       <property name="toolTip">
+        <string>Szukaj pliku w wybranej bazie</string>
+       </property>
        <property name="text">
-        <string>File name</string>
+        <string>Nazwa pliku</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLineEdit" name="lineEdit">
+       <property name="toolTip">
+        <string>Szukaj pliku w wybranej bazie</string>
+       </property>
        <property name="text">
         <string/>
        </property>
@@ -41,14 +55,24 @@
    <item>
     <widget class="QListWidget" name="listWidget"/>
    </item>
+   <item>
+    <widget class="QComboBox" name="comboBox_encoder">
+     <property name="toolTip">
+      <string>Kodowanie tekstu</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>lineEdit</tabstop>
   <tabstop>listWidget</tabstop>
+  <tabstop>comboBox_encoder</tabstop>
   <tabstop>comboBox</tabstop>
   <tabstop>treeView_base</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../icons.qrc"/>
+ </resources>
  <connections/>
 </ui>
