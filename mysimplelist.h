@@ -565,34 +565,22 @@ template <typename T> bool MySimpleList<T>::remove(unsigned index)
         if(m_size == 1)
         {
             m_first = m_last = nullptr;
-            m_start->next = m_end;
-            m_end->previous = m_start;
         }
         else
         {
             m_first = m_first->next;
-            m_first->previous = m_start;
         }
-	
-        delete tmp;
-        m_size--;
     }
     else if(tmp == m_last)
     {
         m_last = m_last->previous;
-        m_last->next = m_end;
-
-        delete tmp;
-        m_size--;
     }
-    else
-    {
-        tmp->previous->next = tmp->next;
-        tmp->next->previous = tmp->previous;
 
-        delete tmp;
-        m_size--;
-    }
+    tmp->previous->next = tmp->next;
+    tmp->next->previous = tmp->previous;
+
+    delete tmp;
+    m_size--;
 
     return true;
 }
@@ -609,34 +597,24 @@ template <typename T> bool MySimpleList<T>::remove(MySimpleList::iterator &iter)
     if(tmp == m_first)
     {
         if(m_size == 1)
+        {
             m_first = m_last = nullptr;
+        }
         else
         {
             m_first = m_first->next;
-            m_first->previous = m_start;
-            m_start->next = m_first;
         }
-
-        delete tmp;
-        m_size--;
     }
     else if(tmp == m_last)
     {
         m_last = m_last->previous;
-        m_last->next = m_end;
-        m_end->previous = m_last;
-
-        delete tmp;
-        m_size--;
     }
-    else
-    {
-        tmp->previous->next = tmp->next;
-        tmp->next->previous = tmp->previous;
 
-        delete tmp;
-        m_size--;
-    }
+    tmp->previous->next = tmp->next;
+    tmp->next->previous = tmp->previous;
+
+    delete tmp;
+    m_size--;
 
     return true;
 }
