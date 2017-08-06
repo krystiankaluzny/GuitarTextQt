@@ -812,31 +812,23 @@ template <typename T> bool ListSortByWeight<T>::remove(ListSortByWeight::iterato
     if(tmp == m_first)
     {
         if(m_first->next == m_end)
+        {
             m_first = m_last = nullptr;
+        }
         else
         {
             m_first = m_first->next;
-            m_first->previous = m_start;
-            m_start->next = m_first;
         }
-
-        delete tmp;
     }
     else if(tmp == m_last)
     {
         m_last = m_last->previous;
-        m_last->next = m_end;
-        m_end->previous = m_last;
-
-        delete tmp;
     }
-    else
-    {
-        tmp->previous->next = tmp->next;
-        tmp->next->previous = tmp->previous;
 
-        delete tmp;
-    }
+    tmp->previous->next = tmp->next;
+    tmp->next->previous = tmp->previous;
+
+    delete tmp;
 
     return true;
 }

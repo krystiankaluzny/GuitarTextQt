@@ -1,6 +1,6 @@
 #include "mysharedata.h"
 #include <QCoreApplication>
-
+#include <QDebug>
 
 int MyShareData::m_columns_count;
 int MyShareData::m_scrolling_delay;
